@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendor Enquiry Mailer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f3f5f9;--surface:#ffffff;--surface-2:#f8fafc;--border:#e2e8f0;--border-strong:#cbd5e1;
+  --text:#0f172a;--text-2:#334155;--muted:#64748b;
+  --primary:#1d4ed8;--primary-dark:#1e3a8a;--primary-weak:#e8eefd;
+  --success:#15803d;--success-weak:#e6f4ea;--danger:#dc2626;--danger-weak:#fdecec;
+  --warn:#b45309;--warn-weak:#fdf3e3;--info:#0369a1;--info-weak:#e6f2f9;
+  --radius:10px;--shadow:0 1px 2px rgba(15,23,42,.05),0 6px 20px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--primary)}
+h1,h2,h3{margin:0;line-height:1.25}
+h2{font-size:18px;font-weight:700}
+h3{font-size:15px;font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+
+/* ---------- Buttons & inputs ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);cursor:pointer;font-weight:500;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover:not(:disabled){background:var(--surface-2);border-color:#94a3b8}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn-danger:hover:not(:disabled){background:#b91c1c;border-color:#b91c1c}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover:not(:disabled){background:var(--surface-2);border-color:var(--border)}
+.btn-ghost.danger{color:var(--danger)}
+.btn-sm{padding:5px 10px;font-size:13px}
+.spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-weight:600;font-size:13px;color:var(--text-2)}
+.field .hint{font-size:12px;color:var(--muted)}
+input[type=text],input[type=email],input[type=password],input[type=search],input[type=date],select,textarea{width:100%;padding:9px 11px;border:1px solid var(--border-strong);border-radius:8px;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+textarea{resize:vertical;min-height:80px}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+.check{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.check input{width:16px;height:16px;accent-color:var(--primary)}
+
+/* ---------- Layout ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:10px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+.topbar .spacer{flex:1}
+.quota{font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:999px}
+.user-box{display:flex;align-items:center;gap:8px}
+.user-box .who{display:flex;flex-direction:column;line-height:1.2;text-align:right}
+.user-box .who b{font-size:13px}
+.user-box .who span{font-size:11px;color:var(--muted)}
+nav.tabs{display:flex;gap:4px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.nav-btn{border:none;background:none;padding:12px 14px;cursor:pointer;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+main{max-width:1280px;margin:0 auto;padding:20px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.page-head p{margin:4px 0 0;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.card + .card{margin-top:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.compose-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input[type=search]{flex:1;min-width:180px}
+.toolbar select{width:auto;min-width:130px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px}
+.counter{display:inline-flex;align-items:center;gap:6px;background:var(--primary-weak);color:var(--primary-dark);font-weight:600;padding:4px 10px;border-radius:999px;font-size:13px}
+
+/* ---------- Vendor picker ---------- */
+.vlist{border:1px solid var(--border);border-radius:8px;max-height:460px;overflow-y:auto;background:#fff}
+.vrow{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.vrow:last-child{border-bottom:none}
+.l1 td{background:#ecfdf3}
+.rp-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+.rp-filters .field{margin:0}
+.qin{padding:5px 7px!important;font-size:13px;min-width:64px}
+.reply-card{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.reply-card .meta{font-size:12.5px;color:var(--text-2);margin-bottom:6px}
+.reply-card a{color:var(--primary-dark)}
+.vrow.noemail{cursor:default;background:var(--warn-weak)}
+.vrow.noemail input{opacity:.45}
+.noemail-msg{color:var(--warn);font-size:12.5px;font-weight:600;margin-top:2px}
+.vrow:hover{background:var(--surface-2)}
+.vrow input{margin-top:3px;width:16px;height:16px;accent-color:var(--primary);flex-shrink:0}
+.vname{font-weight:600;word-break:break-word}
+.vmeta{font-size:12px;color:var(--muted);word-break:break-all}
+.empty{padding:28px 14px;text-align:center;color:var(--muted)}
+
+/* ---------- Attachments ---------- */
+.drop{border:1.5px dashed var(--border-strong);border-radius:8px;padding:12px;text-align:center;color:var(--muted);cursor:pointer;background:var(--surface-2)}
+.drop:hover,.drop.over{border-color:var(--primary);color:var(--primary);background:var(--primary-weak)}
+.att-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.att{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:13px}
+.att span{flex:1;word-break:break-all}
+
+/* ---------- Tables ---------- */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:#fff}
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{background:var(--surface-2);text-align:left;font-weight:600;color:var(--text-2);padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0}
+table.data td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-word}
+table.data tr:last-child td{border-bottom:none}
+table.data tr:hover td{background:#fbfcfe}
+table.data td.actions{white-space:nowrap;text-align:right}
+table.data td.num,table.data th.num{text-align:right;white-space:nowrap}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}
+
+/* ---------- Badges & chips ---------- */
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;background:#eef2f7;color:var(--text-2)}
+.b-success{background:var(--success-weak);color:var(--success)}
+.b-danger{background:var(--danger-weak);color:var(--danger)}
+.b-warn{background:var(--warn-weak);color:var(--warn)}
+.b-info{background:var(--info-weak);color:var(--info)}
+.b-muted{background:#eef2f7;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.stat{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.s-success b{color:var(--success)}.stat.s-danger b{color:var(--danger)}.stat.s-warn b{color:var(--warn)}.stat.s-info b{color:var(--info)}
+
+/* ---------- Modals ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:12px;box-shadow:0 20px 60px rgba(15,23,42,.25);width:100%;max-width:560px;display:flex;flex-direction:column}
+.modal.wide{max-width:960px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-body{padding:18px 20px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.modal-foot .left{margin-right:auto}
+.x{border:none;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 6px}
+.x:hover{color:var(--text)}
+.preview-frame{width:100%;height:420px;border:1px solid var(--border);border-radius:8px;background:#fff}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:13px;margin-bottom:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;word-break:break-word}
+.pre{white-space:pre-wrap;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;max-height:180px;overflow:auto}
+.notice{padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px}
+.notice.warn{background:var(--warn-weak);color:var(--warn)}
+.notice.info{background:var(--info-weak);color:var(--info)}
+.notice.danger{background:var(--danger-weak);color:var(--danger)}
+.notice.success{background:var(--success-weak);color:var(--success)}
+.progress{height:10px;border-radius:999px;background:#e5e9f0;overflow:hidden;margin:12px 0}
+.progress > div{height:100%;width:0;background:var(--primary);transition:width .3s}
+
+/* ---------- Product picker, indent items, chips, checklists ---------- */
+.picker{position:relative}
+.picker-list{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;background:#fff;border:1px solid var(--border-strong);border-radius:8px;box-shadow:var(--shadow);max-height:280px;overflow-y:auto}
+.picker-opt{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border)}
+.picker-opt:last-child{border-bottom:none}
+.picker-opt:hover,.picker-opt.active{background:var(--primary-weak)}
+.picker-empty{padding:12px;color:var(--muted);font-size:13px}
+#itemsBox{margin-bottom:14px}
+.items-empty{padding:12px;border:1.5px dashed var(--border-strong);border-radius:8px;color:var(--muted);text-align:center;font-size:13px}
+.item{border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--surface-2)}
+.item-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.item-no{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;flex-shrink:0}
+.item-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:8px}
+.grow{flex:1;min-width:0}
+.chip{display:inline-block;padding:1px 8px;border-radius:999px;background:#eef2f7;color:var(--text-2);font-size:11.5px;margin:4px 4px 0 0;white-space:nowrap}
+.chip.on{background:var(--primary-weak);color:var(--primary-dark);font-weight:600}
+.chip.warn{background:var(--warn-weak);color:var(--warn);white-space:normal}
+.vmail{font-size:13px;color:var(--primary-dark);word-break:break-all}
+.checklist{border:1px solid var(--border);border-radius:8px;max-height:240px;overflow-y:auto;background:#fff;margin-top:6px}
+.checklist label{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:400;color:var(--text)}
+.checklist label:last-child{border-bottom:none}
+.checklist label:hover{background:var(--surface-2)}
+.checklist input{width:16px;height:16px;accent-color:var(--primary);flex-shrink:0}
+.checklist .empty{padding:14px}
+.label-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.label-row label{font-weight:600;font-size:13px;color:var(--text-2)}
+@media (max-width:520px){.item-grid{grid-template-columns:1fr}}
+
+/* ---------- Password row ---------- */
+.pw-row{display:flex;gap:6px}
+.pw-row input{flex:1;min-width:0}
+
+/* ---------- Login ---------- */
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login-card{width:100%;max-width:380px}
+.login-card .brand{justify-content:center;margin-bottom:6px;font-size:18px}
+.login-card p{text-align:center;color:var(--muted);margin:0 0 18px}
+.error-text{color:var(--danger);font-size:13px;min-height:18px;margin-bottom:8px}
+
+/* ---------- Import ---------- */
+.map-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 14px}
+.steps-note{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+
+/* ---------- Toasts ---------- */
+#toasts{position:fixed;right:16px;bottom:16px;z-index:100;display:flex;flex-direction:column;gap:8px;max-width:360px}
+.toast{padding:11px 14px;border-radius:8px;color:#fff;background:#1e293b;box-shadow:var(--shadow);font-size:13px;animation:pop .2s ease}
+.toast.success{background:var(--success)}.toast.error{background:var(--danger)}.toast.info{background:#1e293b}
+@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+@media (max-width:900px){
+  .compose-grid{grid-template-columns:1fr}
+  .topbar{padding:10px 16px;flex-wrap:wrap}
+  nav.tabs{padding:0 12px}
+  main{padding:16px}
+  .quota{order:5}
+  .kv{grid-template-columns:1fr}
+  .kv dt{margin-top:6px}
+}
+@media (max-width:520px){
+  .user-box .who{display:none}
+  .toolbar select{flex:1}
+  .preview-frame{height:360px}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= LOGIN ======================= -->
+<div id="loginView" class="login-wrap hidden">
+  <form class="card login-card" id="loginForm" autocomplete="on">
+    <div class="brand"><div class="brand-mark">✉</div>Vendor Enquiry Mailer</div>
+    <p>Sign in to send material enquiries</p>
+    <div class="field"><label for="loginUser">Username</label><input type="text" id="loginUser" autocomplete="username" required></div>
+    <div class="field"><label for="loginPass">Password</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+    <div class="error-text" id="loginError"></div>
+    <button class="btn btn-primary" id="loginBtn" type="submit" style="width:100%">Sign in</button>
+  </form>
+</div>
+
+<!-- ======================= APP ======================= -->
+<div id="appView" class="hidden">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">✉</div>Vendor Enquiry Mailer</div>
+    <div class="spacer"></div>
+    <span class="quota" id="quotaBadge" title="Remaining Gmail recipients you can email today">Gmail quota: –</span>
+    <div class="user-box">
+      <div class="who"><b id="userName"></b><span id="userRole"></span></div>
+      <button class="btn btn-sm" id="pwBtn" type="button">Password</button>
+      <button class="btn btn-sm" id="logoutBtn" type="button">Sign out</button>
+    </div>
+  </header>
+  <nav class="tabs">
+    <button class="nav-btn" data-page="compose" type="button">Compose &amp; Send</button>
+    <button class="nav-btn" data-page="vendors" type="button">Vendors (<span id="vendorTotal">0</span>)</button>
+    <button class="nav-btn" data-page="products" type="button">Products (<span id="productTotal">0</span>)</button>
+    <button class="nav-btn" data-page="import" type="button">Import Vendors</button>
+    <button class="nav-btn" data-page="history" type="button">Campaign History</button>
+    <button class="nav-btn" data-page="replies" type="button">Replies &amp; Comparison</button>
+    <button class="nav-btn admin-only hidden" data-page="users" type="button">Users</button>
+  </nav>
+
+  <main>
+    <!-- ============ COMPOSE ============ -->
+    <section class="page" id="page-compose">
+      <div class="page-head">
+        <div><h2>New indent enquiry</h2><p>Pick the products — the vendors who supply them appear on the right. Each vendor gets a separate email with the indent number.</p></div>
+      </div>
+      <div class="compose-grid">
+        <div class="card">
+          <div class="field"><label for="fIndent">Indent number *</label><div style="display:flex;gap:6px"><input type="text" id="fIndent" maxlength="50" placeholder="Auto-generated" autocomplete="off"><button class="btn btn-sm" id="indentAuto" type="button" title="Generate next indent number">Auto</button></div></div>
+          <div class="field">
+            <label for="prodSearch">Products *</label>
+            <div class="picker">
+              <input type="search" id="prodSearch" placeholder="Type to search products, then click or press Enter…" autocomplete="off">
+              <div class="picker-list hidden" id="prodList"></div>
+            </div>
+          </div>
+          <div id="itemsBox"></div>
+          <div class="field"><label for="fSubject">Email subject *</label><input type="text" id="fSubject" maxlength="200" placeholder="Filled in from the products — you can change it"><span class="hint" id="subjectHint"></span></div>
+          <div class="field"><label for="fQty">Delivery requirements</label><textarea id="fQty" rows="2" maxlength="5000" placeholder="e.g. Delivery to Lucknow factory within 10 days · 25 kg bags"></textarea></div>
+          <div class="field"><label for="fMsg">Message / requirement note</label><textarea id="fMsg" rows="3" maxlength="10000" placeholder="Common message for all selected vendors (optional)"></textarea></div>
+          <div class="field">
+            <label>Attachments <span class="muted small">(optional · up to 5 files · 10 MB total)</span></label>
+            <div class="drop" id="attDrop">Click or drop files here (PDF, Excel, images…)</div>
+            <input type="file" id="attInput" multiple class="hidden">
+            <div class="att-list" id="attList"></div>
+          </div>
+          <div class="row-actions">
+            <button class="btn" id="clearFormBtn" type="button">Clear form</button>
+            <button class="btn" id="sendTestBtn" type="button" title="Sends one test copy to the sending Gmail account">Send test to me</button>
+            <button class="btn btn-primary" id="previewBtn" type="button" disabled>Preview &amp; send <span>(<span id="sendCount">0</span>)</span></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3 id="cvTitle">Vendors</h3>
+            <span class="counter"><span id="selCount">0</span> selected</span>
+          </div>
+          <div class="toolbar">
+            <input type="search" id="cvSearch" placeholder="Search name, company, email…">
+            <label class="check small"><input type="checkbox" id="cvShowAll"> Show all vendors</label>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-sm" id="cvSelectAll" type="button">Select all shown <span>(<span id="cvShown">0</span>)</span></button>
+            <button class="btn btn-sm" id="cvDeselectAll" type="button">Deselect all</button>
+            <button class="btn btn-sm btn-ghost" id="cvRefresh" type="button">↻ Refresh</button>
+          </div>
+          <div id="cvMissing"></div>
+          <div class="vlist" id="cvList"><div class="empty">Loading…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VENDORS ============ -->
+    <section class="page hidden" id="page-vendors">
+      <div class="page-head">
+        <div><h2>Vendor master</h2><p>Add, edit or delete vendors and choose which products each one supplies. Stored in the “Vendors” and “VendorProducts” sheets.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="vExport" type="button">Export CSV</button>
+          <button class="btn btn-primary" id="vAdd" type="button">+ Add vendor</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" id="vSearch" placeholder="Search name, company, email, phone, product…">
+          <select id="vProduct"><option value="">All products</option></select>
+          <button class="btn btn-sm btn-danger" id="vDeleteSel" type="button" disabled>Delete selected <span>(<span id="vSelCount">0</span>)</span></button>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr>
+              <th style="width:34px"><input type="checkbox" id="vChkAll" title="Select all on this page"></th>
+              <th>Contact person</th><th>Company</th><th>Email</th><th>Phone</th><th>Products</th><th></th>
+            </tr></thead>
+            <tbody id="vBody"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <span class="muted small" id="vInfo"></span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn btn-sm" id="vPrev" type="button">‹ Prev</button>
+            <span class="small" id="vPage"></span>
+            <button class="btn btn-sm" id="vNext" type="button">Next ›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRODUCTS ============ -->
+    <section class="page hidden" id="page-products">
+      <div class="page-head">
+        <div><h2>Products</h2><p>Your product list and the vendors who supply each one. Stored in the “Products” and “VendorProducts” sheets.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="pBulk" type="button">+ Add multiple</button>
+          <button class="btn btn-primary" id="pAdd" type="button">+ Add product</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" id="pSearch" placeholder="Search product, category, unit…">
+          <label class="check small"><input type="checkbox" id="pNoVendor"> Without vendors only</label>
+          <button class="btn btn-sm btn-danger" id="pDeleteSel" type="button" disabled>Delete selected <span>(<span id="pSelCount">0</span>)</span></button>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr>
+              <th style="width:34px"><input type="checkbox" id="pChkAll" title="Select all shown"></th>
+              <th>Product</th><th>Category</th><th>Unit</th><th>Vendors</th><th></th>
+            </tr></thead>
+            <tbody id="pBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ IMPORT ============ -->
+    <section class="page hidden" id="page-import">
+      <div class="page-head">
+        <div><h2>Import vendors</h2><p>Upload Excel/CSV or paste data with <b>Company Name</b> (required), <b>Email</b>, <b>Contact Person Name</b> and <b>Products</b> (separate several with <b>;</b>). Vendors without an email are imported too — add the email later. Existing vendors (same company name) are never duplicated.</p></div>
+        <button class="btn" id="impTemplate" type="button">Download Excel template</button>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:12px">1. Choose data</h3>
+        <div class="compose-grid">
+          <div>
+            <div class="field">
+              <label for="impFile">Excel or CSV file (.xlsx, .xls, .csv, .txt)</label>
+              <input type="file" id="impFile" accept=".xlsx,.xls,.xlsm,.ods,.csv,.txt,.tsv">
+            </div>
+            <div class="field hidden" id="impSheetWrap">
+              <label for="impSheet">Worksheet</label>
+              <select id="impSheet"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="impPaste">…or paste data</label>
+            <textarea id="impPaste" rows="5" placeholder="Paste rows copied from Excel, CSV text, or a plain list of emails like:&#10;Ramesh Traders <sales@ramesh.com>&#10;info@abcchem.in, purchase@xyz.co.in"></textarea>
+          </div>
+        </div>
+        <div class="row-actions" style="justify-content:flex-start">
+          <button class="btn btn-primary" id="impReadBtn" type="button">Read pasted data</button>
+          <button class="btn" id="impClearBtn" type="button">Clear</button>
+        </div>
+      </div>
+
+      <div class="card hidden" id="impMapCard">
+        <div class="card-head">
+          <h3>2. Check column mapping</h3>
+          <label class="check"><input type="checkbox" id="impHasHeader"> First row is a header row</label>
+        </div>
+        <div class="map-grid" id="impMapGrid"></div>
+        <p class="muted small" style="margin:0">Only these columns are imported — others are ignored. Company Name is required; Email can be blank or hold several addresses (comma separated). Products: separate several with a semicolon (;); new product names are created automatically and linked to the vendor.</p>
+      </div>
+
+      <div class="card hidden" id="impReviewCard">
+        <div class="card-head"><h3>3. Review &amp; import</h3></div>
+        <div class="stats" id="impStats"></div>
+        <div class="table-wrap" style="max-height:380px;overflow:auto">
+          <table class="data">
+            <thead><tr><th>Row</th><th>Status</th><th>Email</th><th>Company name</th><th>Contact person</th><th>Products</th></tr></thead>
+            <tbody id="impBody"></tbody>
+          </table>
+        </div>
+        <p class="muted small" id="impMore"></p>
+        <div class="row-actions" style="justify-content:space-between;align-items:center">
+          <label class="check"><input type="checkbox" id="impUpdateExisting"> Also fill empty name details of vendors already in the database</label>
+          <button class="btn btn-primary" id="impBtn" type="button">Import vendors</button>
+        </div>
+        <div id="impResult" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section class="page hidden" id="page-history">
+      <div class="page-head">
+        <div><h2>Campaign history</h2><p>Every enquiry sent, with per-vendor delivery status.</p></div>
+        <button class="btn" id="hRefresh" type="button">↻ Refresh</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" id="hSearch" placeholder="Search indent no, subject, product, user…">
+          <select id="hStatus">
+            <option value="">All statuses</option>
+            <option>Queued</option><option>Sending</option><option>Paused (User)</option><option>Paused (Quota)</option>
+            <option>Completed</option><option>Completed with errors</option><option>Cancelled</option>
+          </select>
+          <label class="check small"><input type="checkbox" id="hFailedOnly"> With failed emails</label>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Created</th><th>Indent No</th><th>Subject / products</th><th>By</th><th class="num">Total</th><th class="num">Sent</th><th class="num">Failed</th><th class="num">Skipped</th><th class="num">Pending</th><th>Status</th><th></th></tr></thead>
+            <tbody id="hBody"><tr><td colspan="11" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REPLIES & COMPARISON ============ -->
+    <section class="page hidden" id="page-replies">
+      <div class="page-head">
+        <div><h2>Vendor replies &amp; comparison</h2><p>Replies to your enquiries are read from your Gmail and matched by <b>indent number</b> — see who has replied, read their messages, and compare rates.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" id="rpSync" type="button">↻ Sync replies now</button></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Find enquiries</h3><button class="btn btn-sm btn-ghost" id="rpClear" type="button">Clear filters</button></div>
+        <div class="rp-filters">
+          <div class="field"><label for="rpBy">Filter dates by</label><select id="rpBy"><option value="sent">Email sent date</option><option value="reply">Reply received date</option></select></div>
+          <div class="field"><label for="rpFrom">From date</label><input type="date" id="rpFrom"></div>
+          <div class="field"><label for="rpTo">To date</label><input type="date" id="rpTo"></div>
+          <div class="field"><label for="rpMonth">Month</label><select id="rpMonth"><option value="">All months</option>
+            <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option>
+            <option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option></select></div>
+          <div class="field"><label for="rpYear">Year</label><select id="rpYear"><option value="">All years</option></select></div>
+          <div class="field"><label for="rpIndentQ">Indent number / product</label><input type="search" id="rpIndentQ" placeholder="e.g. IND/2026/0005" autocomplete="off"></div>
+        </div>
+        <div class="muted small" id="rpSyncInfo" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Indents <span class="muted small" id="rpCount"></span></h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><select id="rpIndent" style="max-width:420px"></select><button class="btn" id="rpExport" type="button">Export comparison (CSV)</button></div></div>
+        <div class="table-wrap" style="max-height:300px;overflow:auto"><table class="data"><thead><tr><th>Indent No</th><th>First sent</th><th>Products</th><th class="num">Vendors emailed</th><th class="num">Replied</th><th class="num">No reply yet</th><th class="num" id="rpPeriodTh">Replies</th><th>Last reply</th><th></th></tr></thead>
+          <tbody id="rpOverview"></tbody></table></div>
+      </div>
+      <div id="rpBody"><div class="card"><div class="empty">Choose an indent number.</div></div></div>
+      <div class="card hidden" id="rpUnassignedCard">
+        <div class="card-head"><h3>Replies to assign</h3></div>
+        <p class="muted small" style="margin:0 0 10px">These emails look related to an enquiry but could not be matched to a vendor or indent automatically (for example, the vendor replied from a different address).</p>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Received</th><th>From</th><th>Subject</th><th>Indent</th><th></th></tr></thead><tbody id="rpUnBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ============ USERS ============ -->
+    <section class="page hidden" id="page-users">
+      <div class="page-head">
+        <div><h2>Users</h2><p>People who can sign in and send enquiries from your Gmail account.</p></div>
+        <button class="btn btn-primary" id="uAdd" type="button">+ Add user</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Username</th><th>Display name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+            <tbody id="uBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ======================= MODALS ======================= -->
+<div class="modal-bg" id="previewModal">
+  <div class="modal wide">
+    <div class="modal-head"><h3>Preview &amp; confirm</h3><button class="x" data-close="previewModal" type="button">×</button></div>
+    <div class="modal-body">
+      <div id="pvNotice"></div>
+      <dl class="kv">
+        <dt>Recipients</dt><dd><b id="pvCount">0</b> vendors — each gets a separate email — vendors never see each other</dd>
+        <dt>Indent number</dt><dd><b id="pvIndent"></b></dd>
+        <dt>Preview for</dt><dd style="display:flex;gap:8px"><select id="pvVendor"></select><button class="btn btn-sm" id="pvReload" type="button">Reload preview</button></dd>
+        <dt>To</dt><dd id="pvTo"></dd>
+        <dt>CC</dt><dd id="pvCc"></dd>
+        <dt>Subject</dt><dd id="pvSubject"></dd>
+        <dt>Products in this email</dt><dd id="pvProducts"></dd>
+        <dt>Attachments</dt><dd id="pvAtt"></dd>
+      </dl>
+      <iframe class="preview-frame" id="pvFrame" sandbox="" title="Email preview"></iframe>
+    </div>
+    <div class="modal-foot">
+      <label class="check left"><input type="checkbox" id="pvConfirm"> I have checked the content and want to send it to <b>&nbsp;<span id="pvCount2">0</span>&nbsp;</b> vendors</label>
+      <button class="btn" data-close="previewModal" type="button">Back to edit</button>
+      <button class="btn btn-primary" id="pvSendBtn" type="button" disabled>Send now</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="replyModal">
+  <div class="modal wide">
+    <div class="modal-head"><h3 id="rmTitle">Replies</h3><button class="x" data-close="replyModal" type="button">×</button></div>
+    <div class="modal-body" id="rmBody"></div>
+    <div class="modal-foot"><button class="btn" data-close="replyModal" type="button">Close</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="assignModal">
+  <form class="modal" id="assignForm">
+    <div class="modal-head"><h3>Assign reply</h3><button class="x" data-close="assignModal" type="button">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="asReply">
+      <p class="muted small" id="asInfo" style="margin:0 0 10px"></p>
+      <div class="field"><label for="asIndent">Indent number</label><select id="asIndent"></select></div>
+      <div class="field"><label for="asVendor">Vendor</label><select id="asVendor"></select></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="assignModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="asSave" type="submit">Assign</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-bg" id="emailModal">
+  <form class="modal" id="emailForm">
+    <div class="modal-head"><h3>Add / update vendor email</h3><button class="x" data-close="emailModal" type="button">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="emVendor">
+      <p style="margin:0 0 10px"><b id="emName"></b></p>
+      <div class="field"><label for="emEmail">Email address(es)</label>
+        <input type="text" id="emEmail" maxlength="1000" placeholder="e.g. sales@company.com, accounts@company.com" autocomplete="off">
+        <span class="hint">Separate several addresses with commas. The enquiry goes only to this vendor's addresses — never to other vendors.</span></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="emailModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="emSave" type="submit">Save email</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-bg" id="progressModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Sending enquiry</h3><span class="badge b-muted" id="pgCampaign"></span></div>
+    <div class="modal-body">
+      <div class="progress"><div id="pgBar"></div></div>
+      <div class="stats">
+        <div class="stat s-success"><b id="pgSent">0</b><span>Sent</span></div>
+        <div class="stat s-danger"><b id="pgFailed">0</b><span>Failed</span></div>
+        <div class="stat s-warn"><b id="pgSkipped">0</b><span>Skipped</span></div>
+        <div class="stat s-info"><b id="pgPending">0</b><span>Pending</span></div>
+      </div>
+      <div class="notice info" id="pgStatus">Starting…</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="pgStop" type="button">Pause sending</button>
+      <button class="btn hidden" id="pgHistory" type="button">View in history</button>
+      <button class="btn btn-primary hidden" id="pgClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="vendorModal">
+  <form class="modal" id="vendorForm">
+    <div class="modal-head"><h3 id="vmTitle">Vendor</h3><button class="x" data-close="vendorModal" type="button">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="vmId">
+      <div class="field"><label for="vmEmail">Email <span class="muted small">(optional — several allowed, separated by commas)</span></label><input type="text" id="vmEmail" maxlength="1000" placeholder="e.g. sales@company.com, accounts@company.com"></div>
+      <div class="map-grid">
+        <div class="field"><label for="vmName">Contact person name</label><input type="text" id="vmName" maxlength="150"></div>
+        <div class="field"><label for="vmCompany">Company name</label><input type="text" id="vmCompany" maxlength="150"></div>
+        <div class="field"><label for="vmPhone">Phone / mobile</label><input type="text" id="vmPhone" maxlength="60"></div>
+        <div class="field"><label for="vmCity">City</label><input type="text" id="vmCity" maxlength="80"></div>
+      </div>
+      <div class="field">
+        <div class="label-row"><label for="vmProdSearch">Products supplied <span class="muted" id="vmProdCount"></span></label></div>
+        <input type="search" id="vmProdSearch" placeholder="Search products…">
+        <div class="checklist" id="vmProdList"></div>
+        <div class="pw-row" style="margin-top:8px"><input type="text" id="vmNewProd" maxlength="150" placeholder="Not in the list? Type a new product name"><button class="btn btn-sm" id="vmAddProd" type="button">+ Add product</button></div>
+      </div>
+      <div class="field"><label for="vmNotes">Notes</label><textarea id="vmNotes" rows="2" maxlength="1000"></textarea></div>
+      <div id="vmExtra"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="vendorModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="vmSave" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-bg" id="productModal">
+  <form class="modal" id="productForm">
+    <div class="modal-head"><h3 id="pmTitle">Product</h3><button class="x" data-close="productModal" type="button">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pmId">
+      <div class="field"><label for="pmName">Product name *</label><input type="text" id="pmName" maxlength="150" required></div>
+      <div class="map-grid">
+        <div class="field"><label for="pmCategory">Category</label><input type="text" id="pmCategory" maxlength="100" list="pCatList" placeholder="e.g. Pigment, Solvent, Resin"></div>
+        <div class="field"><label for="pmUnit">Unit</label><input type="text" id="pmUnit" maxlength="30" placeholder="kg, L, MT, Nos…"></div>
+      </div>
+      <datalist id="pCatList"></datalist>
+      <div class="field"><label for="pmSpec">Default specification</label><textarea id="pmSpec" rows="2" maxlength="2000" placeholder="Pre-filled when this product is added to an indent (can be changed there)"></textarea></div>
+      <div class="field">
+        <div class="label-row"><label for="pmVendorSearch">Vendors who supply this product <span class="muted" id="pmVendorCount"></span></label>
+          <span><button class="btn btn-sm btn-ghost" type="button" id="pmAllShown">Select shown</button><button class="btn btn-sm btn-ghost" type="button" id="pmNone">Clear</button></span></div>
+        <input type="search" id="pmVendorSearch" placeholder="Search vendor, company, email…">
+        <div class="checklist" id="pmVendorList"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="productModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="pmSave" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-bg" id="bulkModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Add multiple products</h3><button class="x" data-close="bulkModal" type="button">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label for="bulkNames">Product names — one per line</label>
+        <textarea id="bulkNames" rows="9" placeholder="Titanium Dioxide (Rutile)&#10;Talc Powder&#10;Xylene"></textarea>
+        <span class="hint">You can paste a column from Excel. Names that already exist are skipped. Link vendors afterwards with “Edit”.</span></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="bulkModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="bulkSave" type="button">Add products</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="campaignModal">
+  <div class="modal wide">
+    <div class="modal-head"><h3 id="cdTitle">Campaign</h3><button class="x" data-close="campaignModal" type="button">×</button></div>
+    <div class="modal-body" id="cdBody"><div class="empty">Loading…</div></div>
+    <div class="modal-foot">
+      <button class="btn left" id="cdExport" type="button">Export CSV</button>
+      <button class="btn btn-danger hidden" id="cdCancel" type="button">Cancel pending</button>
+      <button class="btn hidden" id="cdRetry" type="button">Retry failed</button>
+      <button class="btn btn-primary hidden" id="cdResume" type="button">Resume sending</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="userModal">
+  <form class="modal" id="userForm">
+    <div class="modal-head"><h3 id="umTitle">User</h3><button class="x" data-close="userModal" type="button">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="umIsNew">
+      <div class="field"><label for="umUsername">Username *</label><input type="text" id="umUsername" maxlength="40" required><span class="hint">3–40 characters: letters, numbers, dot, dash, underscore</span></div>
+      <div class="field"><label for="umDisplay">Display name</label><input type="text" id="umDisplay" maxlength="80"></div>
+      <div class="field"><label for="umRole">Role</label><select id="umRole"><option value="User">User — import vendors &amp; send enquiries</option><option value="Admin">Admin — also manages users</option></select></div>
+      <div class="field"><label for="umPassword" id="umPwLabel">Password *</label>
+        <div class="pw-row"><input type="password" id="umPassword" autocomplete="new-password"><button class="btn btn-sm" type="button" id="umGen">Generate</button><button class="btn btn-sm" type="button" id="umCopy">Copy</button></div>
+        <span class="hint">One-time password — share it with the user; they must set their own at first login.</span></div>
+      <label class="check"><input type="checkbox" id="umActive" checked> Active (can sign in)</label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close="userModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="umSave" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-bg" id="passwordModal">
+  <form class="modal" id="passwordForm">
+    <div class="modal-head"><h3 id="cpTitle">Change password</h3><button class="x" id="cpX" data-close="passwordModal" type="button">×</button></div>
+    <div class="modal-body">
+      <div id="cpNotice"></div>
+      <div class="field"><label for="cpOld" id="cpOldLabel">Current password</label><input type="password" id="cpOld" autocomplete="current-password" required></div>
+      <div class="field"><label for="cpNew">New password</label>
+        <div class="pw-row"><input type="password" id="cpNew" autocomplete="new-password" required><button class="btn btn-sm" type="button" id="cpGen">Generate</button><button class="btn btn-sm" type="button" id="cpCopy">Copy</button></div>
+        <span class="hint">Min 8 characters with letters and numbers. “Generate” creates a strong password and copies it — save it before continuing.</span></div>
+      <div class="field"><label for="cpNew2">Confirm new password</label><input type="password" id="cpNew2" autocomplete="new-password" required></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cpCancel" data-close="passwordModal" type="button">Cancel</button>
+      <button class="btn btn-primary" id="cpSave" type="submit">Save password</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal-bg" id="confirmModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="cfTitle">Confirm</h3></div>
+    <div class="modal-body"><p id="cfMsg" style="margin:0;white-space:pre-line"></p></div>
+    <div class="modal-foot">
+      <button class="btn" id="cfCancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="cfOk" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   CONFIGURATION — paste your Apps Script Web App URL (ends with /exec).
+   This URL is not a secret: every request still needs a user login.
+   ===================================================================== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbwaQGwSXFSz6G2pXvJLEIWIbJit0JNMezMm81s39NRYgOF05sKhwFrpa55Ni_mMHmTT/exec';
+
+/* ======================= CONSTANTS ======================= */
+const MAX_ATT = 5, MAX_ATT_MB = 10;
+const BLOCKED_EXT = ['exe','bat','cmd','com','js','vbs','msi','scr','jar','ps1','sh','dll','apk','reg'];
+const PAGE_SIZE = 50;
+const IMPORT_CHUNK = 400;
+const EMAIL_RE = /^[A-Za-z0-9._%+'-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/;
+const EMAIL_FIND_RE = /[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const PHONE_RE = /^[+\d][\d\s\-().\/]{6,}$/;
+// Import uses only these fields (matches the Excel template).
+const FIELDS = [
+  { key: 'Email', label: 'Email (optional — several allowed)' },
+  { key: 'CompanyName', label: 'Company Name *' },
+  { key: 'VendorName', label: 'Contact Person Name' },
+  { key: 'Products', label: 'Products (optional, separate with ;)' }
+];
+const MAP_PRIORITY = ['Email', 'CompanyName', 'Products', 'VendorName'];
+const HEADER_PATTERNS = {
+  Email: /e-?mail|mail\s*id/i,
+  CompanyName: /company|firm|organi[sz]ation|business|^m\/?s\.?$|^vendor$|^supplier$|party|dealer|^manufacturer/i,
+  VendorName: /contact\s*person|person|\bname\b|\battn|proprietor|owner/i,
+  Products: /product|material|item|suppl(y|ies)/i
+};
+
+/* ======================= STATE ======================= */
+const state = {
+  token: null, user: null,
+  vendors: [], vendorById: new Map(),
+  products: [], productById: new Map(), vendorsByProduct: new Map(),
+  items: [],                    // indent products: [{productId, spec, qty}]
+  subjectAuto: true, pickIndex: 0,
+  selected: new Set(),          // compose selection (VendorIDs)
+  vendorSel: new Set(),         // vendor table selection
+  productSel: new Set(),        // product table selection
+  vmProducts: new Set(),        // products ticked in the vendor form
+  pmVendors: new Set(), pmShown: [], // vendors ticked in the product form
+  vendorPage: 1,
+  attachments: [],
+  requestId: newRequestId(),
+  campaigns: [], campaignDetail: null,
+  users: [],
+  imp: { wb: null, grid: [], hasHeader: true, map: {}, records: [] },
+  sending: false, stopRequested: false, forcePw: false
+};
+
+/* ======================= UTILITIES ======================= */
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function newRequestId() {
+  try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) { /* fallback below */ }
+  return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+}
+function isValidEmail(e) { return !!e && e.length <= 254 && EMAIL_RE.test(e) && !/\.\./.test(e) && !/^\./.test(e) && !/\.@/.test(e); }
+function fmtDate(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return String(v);
+  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function fmtSize(b) { return b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(2) + ' MB'; }
+function store(k, v) { try { if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } }
+function load(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+function toast(msg, type = 'info', ms = 4500) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  $('toasts').appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+function setBusy(btn, busy, label) {
+  if (!btn) return;
+  if (busy) {
+    if (!btn.dataset.label) btn.dataset.label = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>' + esc(label || 'Please wait…');
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.label) { btn.innerHTML = btn.dataset.label; delete btn.dataset.label; }
+  }
+}
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+function downloadCSV(filename, rows) {
+  const csv = rows.map(r => r.map(v => {
+    let s = String(v == null ? '' : v);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function statusClass(s) {
+  s = String(s || '');
+  if (s === 'Sent' || s === 'Completed') return 'b-success';
+  if (s === 'Failed' || s === 'Completed with errors') return 'b-danger';
+  if (s === 'Skipped' || s.indexOf('Paused') === 0) return 'b-warn';
+  if (s === 'Pending' || s === 'Sending' || s === 'Queued') return 'b-info';
+  return 'b-muted';
+}
+function confirmDialog(title, msg, okText = 'OK', danger = false) {
+  return new Promise(resolve => {
+    $('cfTitle').textContent = title;
+    $('cfMsg').textContent = msg;
+    const ok = $('cfOk'), cancel = $('cfCancel');
+    ok.textContent = okText;
+    ok.className = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+    const done = v => { closeModal('confirmModal'); ok.onclick = null; cancel.onclick = null; resolve(v); };
+    ok.onclick = () => done(true);
+    cancel.onclick = () => done(false);
+    openModal('confirmModal');
+  });
+}
+
+/* ======================= PASSWORDS ======================= */
+/** 12 characters with upper, lower, digit and symbol; skips look-alikes (0/O, 1/l/I). */
+function generatePassword(len = 12) {
+  const lower = 'abcdefghjkmnpqrstuvwxyz', upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ', digits = '23456789', sym = '@#$%&*!?';
+  const all = lower + upper + digits + sym;
+  const rnd = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+  const chars = [lower[rnd(lower.length)], upper[rnd(upper.length)], digits[rnd(digits.length)], sym[rnd(sym.length)]];
+  while (chars.length < len) chars.push(all[rnd(all.length)]);
+  for (let i = chars.length - 1; i > 0; i--) { const j = rnd(i + 1); [chars[i], chars[j]] = [chars[j], chars[i]]; }
+  return chars.join('');
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('Password copied to clipboard.', 'success'); }
+  catch (e) { toast('Could not copy automatically — select the password and copy it.', 'error'); }
+}
+/** force = first login with a one-time password: the dialog cannot be closed until a new password is saved. */
+function openPasswordModal(force, oneTimePassword) {
+  state.forcePw = !!force;
+  $('passwordForm').reset();
+  ['cpNew', 'cpNew2'].forEach(id => { $(id).type = 'password'; });
+  $('cpTitle').textContent = force ? 'Set your new password' : 'Change password';
+  $('cpOldLabel').textContent = force ? 'One-time password' : 'Current password';
+  $('cpNotice').innerHTML = force
+    ? '<div class="notice warn">First login: set your own password to continue. Click <b>Generate</b> for a strong one — it is copied automatically; save it somewhere safe.</div>'
+    : '';
+  if (oneTimePassword) $('cpOld').value = oneTimePassword;
+  $('cpX').classList.toggle('hidden', !!force);
+  $('cpCancel').classList.toggle('hidden', !!force);
+  openModal('passwordModal');
+  setTimeout(() => $(oneTimePassword ? 'cpNew' : 'cpOld').focus(), 50);
+}
+
+/* ======================= API ======================= */
+async function api(action, data = {}) {
+  if (!API_URL || API_URL.indexOf('PASTE_') === 0) throw new Error('API_URL is not set in index.html.');
+  let res;
+  try {
+    // No custom headers → "simple" request (text/plain), so no CORS preflight is needed.
+    res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, token: state.token, data }) });
+  } catch (e) {
+    const err = new Error('Network error — check your internet connection.'); err.code = 'NETWORK'; throw err;
+  }
+  let json;
+  try { json = await res.json(); } catch (e) {
+    const err = new Error('Unexpected server response (HTTP ' + res.status + '). Check the Web App URL and that access is set to "Anyone".');
+    err.code = 'BAD_RESPONSE'; throw err;
+  }
+  if (!json.ok) {
+    const err = new Error(json.error || 'Request failed.');
+    err.code = json.code || '';
+    if (err.code === 'AUTH' && action !== 'login') handleExpired(err.message);
+    if (err.code === 'MUST_CHANGE') openPasswordModal(true);
+    throw err;
+  }
+  return json.data;
+}
+
+/* ======================= AUTH ======================= */
+async function doLogin(ev) {
+  ev.preventDefault();
+  const btn = $('loginBtn');
+  $('loginError').textContent = '';
+  setBusy(btn, true, 'Signing in…');
+  try {
+    const pw = $('loginPass').value;
+    const r = await api('login', { username: $('loginUser').value.trim(), password: pw });
+    state.token = r.token;
+    state.user = r;
+    store('vem_token', r.token);
+    $('loginPass').value = '';
+    if (r.mustChangePassword) openPasswordModal(true, pw);
+    else await enterApp(r.quota);
+  } catch (e) {
+    $('loginError').textContent = e.message;
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+async function enterApp(quota) {
+  $('loginView').classList.add('hidden');
+  $('appView').classList.remove('hidden');
+  $('userName').textContent = state.user.displayName || state.user.username;
+  $('userRole').textContent = state.user.role;
+  document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', state.user.role !== 'Admin'));
+  updateQuota(quota);
+  showPage('compose');
+  await loadVendors();
+  fillIndentNo(false);
+}
+
+function handleExpired(msg) {
+  if (!state.token) return;
+  state.token = null;
+  store('vem_token', null);
+  document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+  $('appView').classList.add('hidden');
+  $('loginView').classList.remove('hidden');
+  $('loginError').textContent = msg || 'Session expired. Please sign in again.';
+}
+
+async function logout() {
+  if (state.sending && !(await confirmDialog('Sending in progress', 'Signing out will pause sending. Continue?', 'Sign out', true))) return;
+  try { await api('logout'); } catch (e) { /* ignore */ }
+  state.token = null;
+  store('vem_token', null);
+  location.reload();
+}
+
+function updateQuota(q) {
+  if (typeof q === 'number') $('quotaBadge').textContent = 'Gmail quota left today: ' + q;
+}
+
+/* ======================= NAVIGATION ======================= */
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(s => s.classList.toggle('hidden', s.id !== 'page-' + p));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === p));
+  if (p === 'history') loadCampaigns();
+  if (p === 'replies') loadReplyIndents();
+  if (p === 'users') loadUsers();
+  if (p === 'vendors') renderVendorTable();
+  if (p === 'products') renderProductTable();
+}
+
+/* ======================= MASTER DATA (vendors + products) ======================= */
+async function loadVendors() { return loadMaster(); }
+
+async function loadMaster() {
+  try {
+    const r = await api('loadMaster');
+    state.vendors = r.vendors;
+    state.products = r.products;
+    state.vendorById = new Map(r.vendors.map(v => [v.VendorID, v]));
+    state.productById = new Map(r.products.map(p => [p.ProductID, p]));
+    state.vendorsByProduct = new Map();
+    r.vendors.forEach(v => v.ProductIDs.forEach(pid => {
+      if (!state.vendorsByProduct.has(pid)) state.vendorsByProduct.set(pid, []);
+      state.vendorsByProduct.get(pid).push(v.VendorID);
+    }));
+    [...state.selected].forEach(id => { if (!hasEmail(state.vendorById.get(id))) state.selected.delete(id); });
+    [...state.vendorSel].forEach(id => { if (!state.vendorById.has(id)) state.vendorSel.delete(id); });
+    [...state.productSel].forEach(id => { if (!state.productById.has(id)) state.productSel.delete(id); });
+    const before = state.items.length;
+    state.items = state.items.filter(it => state.productById.has(it.productId));
+    if (state.items.length < before) toast('A product in your indent was deleted and has been removed from it.', 'info', 6000);
+    $('vendorTotal').textContent = r.vendors.length;
+    $('productTotal').textContent = r.products.length;
+    refreshFilters();
+    renderItems();
+    renderComposeVendors();
+    updateSubject();
+    renderVendorTable();
+    renderProductTable();
+  } catch (e) {
+    toast(e.message, 'error');
+    $('cvList').innerHTML = '<div class="empty">Could not load data: ' + esc(e.message) + '</div>';
+  }
+}
+
+function refreshFilters() {
+  const sel = $('vProduct');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All products</option><option value="__none">No products linked</option>' +
+    state.products.map(p => '<option value="' + esc(p.ProductID) + '">' + esc(p.ProductName) + '</option>').join('');
+  if (cur === '__none' || state.productById.has(cur)) sel.value = cur;
+  const cats = [...new Set(state.products.map(p => p.Category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  $('pCatList').innerHTML = cats.map(c => '<option value="' + esc(c) + '">').join('');
+}
+
+function productName(pid) { const p = state.productById.get(pid); return p ? p.ProductName : ''; }
+const NO_EMAIL_MSG = 'Email Not Set – Please Configure Email for Future Order Placement.';
+function hasEmail(v) { return !!(v && String(v.Email || '').trim()); }
+function parseEmailsFE(text) {
+  const parts = String(text || '').split(/[,;\s]+/).map(x => x.trim().toLowerCase().replace(/^mailto:/, '').replace(/^<|>$/g, '')).filter(Boolean);
+  const valid = [], invalid = [];
+  [...new Set(parts)].forEach(e => (isValidEmail(e) ? valid : invalid).push(e));
+  return { valid, invalid };
+}
+function vendorTitle(v) { return v.VendorName || v.CompanyName || '(No name)'; }
+function vendorMatches(v, q) {
+  if (!q) return true;
+  const prods = v.ProductIDs.map(productName).join(' ');
+  return (v.VendorName + ' ' + v.CompanyName + ' ' + v.Email + ' ' + v.Phone + ' ' + v.City + ' ' + prods).toLowerCase().includes(q);
+}
+/** Product chips; ids in `on` are highlighted. Shows at most `max`, then "+n". */
+function chips(pids, on, max = 4) {
+  const names = pids.map(pid => ({ pid, name: productName(pid) })).filter(x => x.name).sort((a, b) => a.name.localeCompare(b.name));
+  const shown = names.slice(0, max).map(x => '<span class="chip' + (on && on.has(x.pid) ? ' on' : '') + '">' + esc(x.name) + '</span>').join('');
+  return shown + (names.length > max ? '<span class="chip">+' + (names.length - max) + ' more</span>' : '');
+}
+/** Generic searchable checkbox list (used in the vendor and product forms). */
+function renderChecklist(box, items, set, q, emptyMsg) {
+  q = (q || '').trim().toLowerCase();
+  const list = items.filter(it => !q || (it.label + ' ' + (it.sub || '')).toLowerCase().includes(q));
+  box.innerHTML = list.length ? list.map(it =>
+    '<label><input type="checkbox" data-cid="' + esc(it.id) + '"' + (set.has(it.id) ? ' checked' : '') + '><span class="grow">' + esc(it.label) +
+    (it.sub ? '<span class="muted small"> · ' + esc(it.sub) + '</span>' : '') + '</span></label>').join('')
+    : '<div class="empty small">' + emptyMsg + '</div>';
+  return list;
+}
+
+/* ======================= COMPOSE ======================= */
+function selectedProductIds() { return state.items.map(it => it.productId); }
+function mappedVendorIds(pids = selectedProductIds()) {
+  const set = new Set();
+  pids.forEach(pid => (state.vendorsByProduct.get(pid) || []).forEach(id => set.add(id)));
+  return set;
+}
+
+/* ---- Product picker ---- */
+function pickerMatches() {
+  const q = $('prodSearch').value.trim().toLowerCase();
+  const chosen = new Set(selectedProductIds());
+  return state.products.filter(p => !chosen.has(p.ProductID) && (!q || (p.ProductName + ' ' + p.Category).toLowerCase().includes(q))).slice(0, 60);
+}
+function renderPicker() {
+  const box = $('prodList');
+  const list = pickerMatches();
+  state.pickIndex = Math.max(0, Math.min(state.pickIndex, list.length - 1));
+  if (!state.products.length) box.innerHTML = '<div class="picker-empty">No products yet — add them in the <b>Products</b> tab.</div>';
+  else if (!list.length) box.innerHTML = '<div class="picker-empty">No matching product' + (state.items.length ? ' (already added ones are hidden)' : '') + '.</div>';
+  else {
+    box.innerHTML = list.map((p, i) =>
+      '<div class="picker-opt' + (i === state.pickIndex ? ' active' : '') + '" data-pid="' + esc(p.ProductID) + '">' +
+      '<span>' + esc(p.ProductName) + (p.Category ? ' <span class="muted small">· ' + esc(p.Category) + '</span>' : '') + '</span>' +
+      '<span class="muted small">' + p.VendorCount + ' vendor' + (p.VendorCount === 1 ? '' : 's') + '</span></div>').join('');
+  }
+  box.classList.remove('hidden');
+}
+function hidePicker() { $('prodList').classList.add('hidden'); }
+
+function addItem(pid) {
+  const p = state.productById.get(pid);
+  if (!p || state.items.some(it => it.productId === pid)) return;
+  if (state.items.length >= 50) return toast('Maximum 50 products per indent.', 'error');
+  state.items.push({ productId: pid, spec: p.Specification || '', qty: '' });
+  const vids = state.vendorsByProduct.get(pid) || [];
+  vids.forEach(id => { if (hasEmail(state.vendorById.get(id))) state.selected.add(id); }); // vendors with an email are ticked automatically
+  $('prodSearch').value = '';
+  state.pickIndex = 0;
+  renderItems();
+  renderComposeVendors();
+  updateSubject();
+  if (!vids.length) toast('No vendors are linked to "' + p.ProductName + '" yet. Link them in the Products tab, or tick "Show all vendors".', 'info', 7000);
+  else {
+    const missing = vids.filter(id => !hasEmail(state.vendorById.get(id))).length;
+    if (missing) toast(missing + ' vendor(s) for "' + p.ProductName + '" have no email set — add it from the vendor list on the right.', 'info', 7000);
+  }
+}
+function removeItem(pid) {
+  const affected = state.vendorsByProduct.get(pid) || [];
+  state.items = state.items.filter(it => it.productId !== pid);
+  const still = mappedVendorIds();
+  affected.forEach(id => { if (!still.has(id)) state.selected.delete(id); });
+  renderItems();
+  renderComposeVendors();
+  updateSubject();
+}
+function renderItems() {
+  const box = $('itemsBox');
+  if (!state.items.length) { box.innerHTML = '<div class="items-empty">No products added yet — search above and pick one or more.</div>'; return; }
+  box.innerHTML = state.items.map((it, i) => {
+    const p = state.productById.get(it.productId) || {};
+    const n = (state.vendorsByProduct.get(it.productId) || []).length;
+    return '<div class="item"><div class="item-head"><span class="item-no">' + (i + 1) + '</span><b class="grow">' + esc(p.ProductName) + '</b>' +
+      '<span class="muted small">' + n + ' vendor' + (n === 1 ? '' : 's') + '</span>' +
+      '<button class="x" type="button" title="Remove product" data-rmitem="' + esc(it.productId) + '">×</button></div>' +
+      '<div class="item-grid">' +
+      '<input type="text" maxlength="2000" placeholder="Specification / grade (optional)" data-item="' + i + '" data-k="spec" value="' + esc(it.spec) + '">' +
+      '<input type="text" maxlength="200" placeholder="Quantity' + (p.Unit ? ' in ' + esc(p.Unit) : '') + ' (optional)" data-item="' + i + '" data-k="qty" value="' + esc(it.qty) + '">' +
+      '</div></div>';
+  }).join('');
+}
+
+/* ---- Subject ---- */
+function autoSubject() {
+  const names = state.items.map(it => productName(it.productId)).filter(Boolean);
+  if (!names.length) return '';
+  let s = 'Enquiry for ' + names.join(', ');
+  if (s.length > 150) s = 'Enquiry for ' + names[0] + ' and ' + (names.length - 1) + ' more product' + (names.length > 2 ? 's' : '');
+  return s;
+}
+function updateSubject() {
+  if (state.subjectAuto) $('fSubject').value = autoSubject();
+  const indent = $('fIndent').value.trim(), subj = $('fSubject').value.trim();
+  const full = indent && !subj.toLowerCase().includes(indent.toLowerCase()) ? 'Indent No: ' + indent + ' | ' + subj : subj;
+  $('subjectHint').innerHTML = indent && subj ? 'Vendors will see: <b>' + esc(full) + '</b>' : 'The indent number is added to the start of the subject automatically.';
+}
+
+/* ---- Vendor selection ---- */
+function composeFiltered() {
+  const q = $('cvSearch').value.trim().toLowerCase();
+  const showAll = $('cvShowAll').checked;
+  const mapped = mappedVendorIds();
+  // Without "show all": vendors of the selected products, plus any vendor already ticked.
+  const base = showAll ? state.vendors : state.vendors.filter(v => mapped.has(v.VendorID) || state.selected.has(v.VendorID));
+  return base.filter(v => vendorMatches(v, q))
+    .sort((a, b) => (mapped.has(b.VendorID) - mapped.has(a.VendorID)) || vendorTitle(a).localeCompare(vendorTitle(b)));
+}
+
+function renderComposeVendors() {
+  const box = $('cvList');
+  const q = $('cvSearch').value.trim();
+  const list = composeFiltered();
+  const sel = new Set(selectedProductIds());
+  $('cvTitle').textContent = state.items.length ? 'Vendors for selected products' : 'Vendors';
+  if (!state.vendors.length) {
+    box.innerHTML = '<div class="empty">No vendors yet. Add them in the <b>Vendors</b> tab or use <b>Import Vendors</b>.</div>';
+  } else if (!state.items.length && !$('cvShowAll').checked && !state.selected.size) {
+    box.innerHTML = '<div class="empty">Select a product on the left — the vendors who supply it appear here with their email addresses, already ticked.<br><br>Or tick <b>Show all vendors</b>.</div>';
+  } else if (!list.length) {
+    box.innerHTML = '<div class="empty">' + (q ? 'No vendors match your search.' : 'No vendors are linked to the selected products. Link vendors in the <b>Products</b> tab, or tick <b>Show all vendors</b>.') + '</div>';
+  } else {
+    box.innerHTML = list.map(v => {
+      const supplies = v.ProductIDs.filter(pid => sel.has(pid));
+      const tag = !state.items.length ? '' : supplies.length ? chips(supplies, sel, 6) : '<span class="chip warn">Not linked to these products — will receive all of them</span>';
+      const title = '<div class="vname">' + esc(vendorTitle(v)) + (v.VendorName && v.CompanyName ? ' <span class="muted">· ' + esc(v.CompanyName) + '</span>' : '') + '</div>';
+      if (!hasEmail(v)) {
+        return '<div class="vrow noemail"><input type="checkbox" disabled title="Set an email address to select this vendor">' +
+          '<div class="grow">' + title + '<div class="noemail-msg">' + esc(NO_EMAIL_MSG) + '</div>' + (tag ? '<div>' + tag + '</div>' : '') + '</div>' +
+          '<button class="btn btn-sm btn-primary" type="button" data-setemail="' + esc(v.VendorID) + '">Add email</button></div>';
+      }
+      return '<label class="vrow"><input type="checkbox" data-id="' + esc(v.VendorID) + '"' + (state.selected.has(v.VendorID) ? ' checked' : '') + '>' +
+        '<div class="grow">' + title + '<div class="vmail">' + esc(v.Email) + '</div>' + (tag ? '<div>' + tag + '</div>' : '') + '</div>' +
+        '<button class="btn btn-sm btn-ghost" type="button" data-setemail="' + esc(v.VendorID) + '" title="Change email address">✎</button></label>';
+    }).join('');
+  }
+  const sendable = list.filter(hasEmail).length, missingN = list.length - sendable;
+  $('cvShown').textContent = sendable;
+  $('cvMissing').innerHTML = missingN ? '<div class="notice warn" style="margin:0 0 8px"><b>' + missingN + '</b> vendor(s) below have <b>no email set</b> and cannot be selected yet. Click <b>Add email</b> on each.</div>' : '';
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const n = state.selected.size;
+  $('selCount').textContent = n;
+  $('sendCount').textContent = n;
+  $('previewBtn').disabled = n === 0;
+}
+
+function getContent() {
+  return {
+    indentNo: $('fIndent').value.trim(),
+    subject: $('fSubject').value.trim(),
+    items: state.items.map(it => ({ productId: it.productId, spec: it.spec.trim(), qty: it.qty.trim() })),
+    quantityDelivery: $('fQty').value.trim(),
+    additionalMessage: $('fMsg').value.trim()
+  };
+}
+function validateContent(c) {
+  if (!c.indentNo) { $('fIndent').focus(); return 'Enter the indent number.'; }
+  if (!/^[A-Za-z0-9][A-Za-z0-9 \/\-_.#()]*$/.test(c.indentNo)) { $('fIndent').focus(); return 'Indent number can contain letters, numbers, spaces and / - _ . # ( )'; }
+  if (!c.items.length) { $('prodSearch').focus(); return 'Add at least one product.'; }
+  if (!c.subject) { $('fSubject').focus(); return 'Enter the email subject.'; }
+  return '';
+}
+function attachmentPayload() {
+  return state.attachments.map(a => ({ name: a.name, mimeType: a.mimeType, base64: a.base64 }));
+}
+
+/* ---- Attachments ---- */
+function readBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(r.error || new Error('Could not read file'));
+    r.readAsDataURL(file);
+  });
+}
+async function addFiles(files) {
+  for (const f of files) {
+    if (state.attachments.length >= MAX_ATT) { toast('Maximum ' + MAX_ATT + ' attachments.', 'error'); break; }
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (BLOCKED_EXT.includes(ext)) { toast('.' + ext + ' files are blocked by Gmail.', 'error'); continue; }
+    if (!f.size) { toast(f.name + ' is empty.', 'error'); continue; }
+    const total = state.attachments.reduce((s, a) => s + a.size, 0) + f.size;
+    if (total > MAX_ATT_MB * 1048576) { toast('Attachments exceed ' + MAX_ATT_MB + ' MB in total.', 'error'); continue; }
+    if (state.attachments.some(a => a.name === f.name && a.size === f.size)) continue;
+    try {
+      const base64 = await readBase64(f);
+      state.attachments.push({ name: f.name, mimeType: f.type || 'application/octet-stream', size: f.size, base64 });
+    } catch (e) { toast('Could not read ' + f.name, 'error'); }
+  }
+  renderAttachments();
+}
+function renderAttachments() {
+  $('attList').innerHTML = state.attachments.map((a, i) =>
+    '<div class="att">📎 <span>' + esc(a.name) + ' <span class="muted">(' + fmtSize(a.size) + ')</span></span>' +
+    '<button class="btn btn-sm btn-ghost danger" type="button" data-rm="' + i + '">Remove</button></div>').join('');
+}
+
+/** Next indent number: IND/<year>/<n+1>, continuing from the highest number already used this year. */
+function nextIndentNo() {
+  const y = new Date().getFullYear(), pre = 'IND/' + y + '/';
+  let max = 0;
+  (state.campaigns || []).forEach(c => {
+    const m = String(c.IndentNo || '').match(new RegExp('^IND/' + y + '/(\\d+)$'));
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return pre + String(max + 1).padStart(4, '0');
+}
+async function fillIndentNo(force) {
+  if ($('fIndent').value.trim() && !force) return;
+  if (!state.campaigns || !state.campaigns.length) { try { state.campaigns = await api('listCampaigns'); } catch (e) { /* use 0001 */ } }
+  $('fIndent').value = nextIndentNo();
+  updateSubject();
+}
+async function resetComposeAfterSend() {
+  ['fIndent', 'fSubject', 'fQty', 'fMsg'].forEach(id => { $(id).value = ''; });
+  state.items = []; state.selected.clear(); state.subjectAuto = true; state.attachments = [];
+  renderAttachments(); renderItems(); renderComposeVendors(); updateSelectedCount();
+  state.campaigns = null;
+  await fillIndentNo(true);
+}
+
+async function clearForm() {
+  const has = $('fIndent').value || state.items.length || $('fQty').value || $('fMsg').value || state.attachments.length || state.selected.size;
+  if (has && !(await confirmDialog('Clear form', 'Clear the indent number, products, message, attachments and vendor selection?', 'Clear'))) return;
+  ['fIndent', 'fSubject', 'fQty', 'fMsg'].forEach(id => { $(id).value = ''; });
+  state.items = [];
+  state.selected.clear();
+  state.subjectAuto = true;
+  state.attachments = [];
+  renderAttachments();
+  renderItems();
+  renderComposeVendors();
+  updateSubject();
+  state.requestId = newRequestId();
+  fillIndentNo(true);
+}
+
+async function sendTest() {
+  const c = getContent();
+  const err = validateContent(c);
+  if (err) return toast(err, 'error');
+  const btn = $('sendTestBtn');
+  setBusy(btn, true, 'Sending test…');
+  try {
+    const first = [...state.selected][0] || '';
+    const r = await api('sendTest', { ...c, vendorId: first, attachments: attachmentPayload() });
+    updateQuota(r.quota);
+    toast('Test email sent to ' + r.to, 'success');
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+/* ---- Preview & send ---- */
+async function openPreview() {
+  const c = getContent();
+  const err = validateContent(c);
+  if (err) return toast(err, 'error');
+  if (!state.selected.size) return toast('Select at least one vendor.', 'error');
+  const ids = [...state.selected];
+  $('pvVendor').innerHTML = ids.slice(0, 200).map(id => {
+    const v = state.vendorById.get(id);
+    return v ? '<option value="' + esc(id) + '">' + esc(vendorTitle(v) + ' — ' + (v.Email || 'no email')) + '</option>' : '';
+  }).join('');
+  $('pvCount').textContent = ids.length;
+  $('pvCount2').textContent = ids.length;
+  $('pvIndent').textContent = c.indentNo;
+  $('pvAtt').textContent = state.attachments.length ? state.attachments.map(a => a.name + ' (' + fmtSize(a.size) + ')').join(', ') : 'None';
+  $('pvConfirm').checked = false;
+  setBusy($('pvSendBtn'), false);
+  $('pvSendBtn').disabled = true;
+  $('pvNotice').innerHTML = '';
+  $('pvTo').textContent = ''; $('pvCc').textContent = ''; $('pvSubject').textContent = ''; $('pvProducts').textContent = '';
+  openModal('previewModal');
+  renderPreview();
+  try {
+    const q = await api('quota');
+    updateQuota(q.remaining);
+    const ccN = (q.cc || []).length;
+    const need = ids.reduce((n, id) => n + Math.max(1, parseEmailsFE((state.vendorById.get(id) || {}).Email).valid.length) + ccN, 0); // Gmail counts every recipient incl. CC
+    if (q.remaining < need) {
+      $('pvNotice').innerHTML = '<div class="notice warn">These emails need about <b>' + need + '</b> of today\'s Gmail sending quota (each recipient and CC counts), but only <b>' + q.remaining + '</b> is left. ' +
+        'As many as fit will go now; the rest stay <b>Pending</b> and can be resumed from History tomorrow.</div>';
+    }
+  } catch (e) { /* quota check is informational only */ }
+}
+
+let pvSeq = 0;
+/** Always renders into a brand-new iframe, so an earlier preview can never leave a stale/blank frame behind. */
+function setPreviewFrame(html) {
+  const old = $('pvFrame');
+  const f = document.createElement('iframe');
+  f.className = old.className; f.id = 'pvFrame'; f.title = 'Email preview'; f.setAttribute('sandbox', '');
+  f.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:18px;background:#fff;font-family:Arial,sans-serif}</style></head><body>' + html + '</body></html>';
+  old.replaceWith(f);
+}
+async function renderPreview() {
+  const seq = ++pvSeq;
+  setPreviewFrame('<p style="color:#64748b">Loading preview… (can take a few seconds)</p>');
+  let timer;
+  try {
+    const r = await Promise.race([
+      api('previewEmail', { ...getContent(), vendorId: $('pvVendor').value }),
+      new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('Preview is taking too long. Click “Reload preview”.')), 45000); })
+    ]);
+    if (seq !== pvSeq) return;
+    $('pvTo').textContent = r.to || '';
+    $('pvCc').textContent = r.cc || '—';
+    $('pvSubject').textContent = r.subject || '';
+    $('pvProducts').textContent = (r.products || []).join(', ');
+    setPreviewFrame(r.html || '<p>(empty email body)</p>');
+  } catch (e) {
+    if (seq !== pvSeq) return;
+    setPreviewFrame('<p style="color:#dc2626"><b>Preview failed:</b> ' + esc(e.message) + '</p><p style="color:#64748b">Click “Reload preview” to try again.</p>');
+  } finally { clearTimeout(timer); }
+}
+
+async function confirmSend() {
+  if (!$('pvConfirm').checked) return toast('Tick the confirmation box first.', 'error');
+  if (state.sending) return toast('Another campaign is already sending in this tab.', 'error');
+  const btn = $('pvSendBtn');
+  setBusy(btn, true, 'Creating campaign…');
+  const payload = { ...getContent(), requestId: state.requestId, vendorIds: [...state.selected], attachments: attachmentPayload() };
+  try {
+    let r = await api('createCampaign', payload);
+    if (r.duplicateWarning) {
+      const p = r.previous;
+      const msg = r.reason === 'indent'
+        ? 'Indent No ' + p.indentNo + ' was already sent on ' + fmtDate(p.createdAt) + ' by ' + p.createdBy +
+          ' (' + p.total + ' vendors, status: ' + p.status + ').\n\nSend this indent again to the selected vendors?'
+        : 'An enquiry with the same content was created on ' + fmtDate(p.createdAt) + ' by ' + p.createdBy +
+          ' (' + p.total + ' vendors, status: ' + p.status + ').\n\nSend it again anyway?';
+      const ok = await confirmDialog('Possible duplicate enquiry', msg, 'Yes, send again', true);
+      if (!ok) { setBusy(btn, false); return; }
+      r = await api('createCampaign', { ...payload, confirmDuplicate: true });
+    }
+    setBusy(btn, false);
+    closeModal('previewModal');
+    if (r.existing) toast('This enquiry was already created — continuing it instead of creating a duplicate.', 'info', 6000);
+    state.requestId = newRequestId(); // any further send is a new campaign
+    updateQuota(r.quota);
+    resetComposeAfterSend();
+    await runCampaign(r.campaignId, false, r);
+  } catch (e) {
+    setBusy(btn, false);
+    toast(e.message, 'error', 7000);
+  }
+}
+
+/* ---- Batch sending loop ---- */
+function updateProgress(r) {
+  if (!r) return;
+  const total = r.total || 0;
+  const done = (r.sent || 0) + (r.failed || 0) + (r.skipped || 0) + (r.cancelled || 0);
+  $('pgSent').textContent = r.sent || 0;
+  $('pgFailed').textContent = r.failed || 0;
+  $('pgSkipped').textContent = r.skipped || 0;
+  $('pgPending').textContent = r.pending || 0;
+  $('pgBar').style.width = (total ? Math.round(done / total * 100) : 100) + '%';
+  if (typeof r.quota === 'number') updateQuota(r.quota);
+}
+
+async function runCampaign(id, resume, initial) {
+  state.sending = true;
+  state.stopRequested = false;
+  $('pgCampaign').textContent = id;
+  $('pgStatus').className = 'notice info';
+  $('pgStatus').textContent = 'Sending emails in small batches… keep this tab open.';
+  $('pgStop').classList.remove('hidden');
+  $('pgStop').disabled = false;
+  $('pgClose').classList.add('hidden');
+  $('pgHistory').classList.add('hidden');
+  updateProgress(initial ? { total: initial.total, sent: 0, failed: 0, skipped: initial.skipped || 0, pending: initial.pending || 0 } : { total: 0 });
+  openModal('progressModal');
+
+  let netFails = 0, idle = 0, last = null, endMsg = '', endType = 'info';
+  while (true) {
+    if (state.stopRequested) {
+      try { last = await api('pauseCampaign', { campaignId: id }); updateProgress(last); } catch (e) { /* ignore */ }
+      endMsg = 'Paused. Remaining emails were not sent — resume any time from Campaign History.';
+      endType = 'warn';
+      break;
+    }
+    try {
+      last = await api('sendBatch', { campaignId: id, resume: !!resume });
+      netFails = 0;
+      updateProgress(last);
+      if (last.status === 'Cancelled') { endMsg = 'This campaign was cancelled.'; endType = 'warn'; break; }
+      if (last.status === 'Paused (User)') { endMsg = 'This campaign is paused. Resume it from Campaign History.'; endType = 'warn'; break; }
+      if (last.done) {
+        endMsg = last.failed ? 'Finished. ' + last.failed + ' email(s) failed — you can retry them from Campaign History.' : 'Finished. All emails were sent successfully.';
+        endType = last.failed ? 'warn' : 'success';
+        break;
+      }
+      if (last.status === 'Paused (Quota)') {
+        endMsg = 'Gmail daily sending limit reached. ' + last.pending + ' email(s) are still pending — resume from Campaign History when the quota resets (about 24 hours after sending).';
+        endType = 'warn';
+        break;
+      }
+      if (last.idle) {
+        idle++;
+        $('pgStatus').textContent = 'Another session is sending part of this campaign — waiting…';
+        if (idle > 30) { endMsg = 'Another session is still sending this campaign. Check Campaign History for progress.'; break; }
+        await sleep(4000);
+      } else {
+        idle = 0;
+        $('pgStatus').textContent = 'Sending emails in small batches… keep this tab open.';
+      }
+    } catch (e) {
+      if (e.code === 'AUTH') { endMsg = 'Session expired. Sign in again and resume from Campaign History.'; endType = 'danger'; break; }
+      netFails++;
+      if (netFails >= 4) { endMsg = 'Stopped after repeated errors: ' + e.message + ' Pending emails can be resumed from Campaign History.'; endType = 'danger'; break; }
+      $('pgStatus').textContent = 'Problem: ' + e.message + ' — retrying (' + netFails + '/3)…';
+      await sleep(3000 * netFails);
+    }
+  }
+
+  state.sending = false;
+  $('pgStatus').className = 'notice ' + endType;
+  $('pgStatus').textContent = endMsg;
+  $('pgStop').classList.add('hidden');
+  $('pgClose').classList.remove('hidden');
+  $('pgHistory').classList.remove('hidden');
+  if (!$('page-history').classList.contains('hidden')) loadCampaigns();
+  if (state.campaignDetail && state.campaignDetail.campaign.CampaignID === id && $('campaignModal').classList.contains('open')) openCampaign(id);
+}
+
+/* ======================= VENDOR TABLE ======================= */
+function vendorFiltered() {
+  const q = $('vSearch').value.trim().toLowerCase();
+  const pf = $('vProduct').value;
+  return state.vendors.filter(v => vendorMatches(v, q) && (!pf || (pf === '__none' ? !v.ProductIDs.length : v.ProductIDs.includes(pf))))
+    .sort((a, b) => vendorTitle(a).localeCompare(vendorTitle(b)));
+}
+
+function renderVendorTable() {
+  const list = vendorFiltered();
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if (state.vendorPage > pages) state.vendorPage = pages;
+  const start = (state.vendorPage - 1) * PAGE_SIZE;
+  const rows = list.slice(start, start + PAGE_SIZE);
+  $('vBody').innerHTML = rows.length ? rows.map(v =>
+    '<tr><td><input type="checkbox" class="vchk" data-id="' + esc(v.VendorID) + '"' + (state.vendorSel.has(v.VendorID) ? ' checked' : '') + '></td>' +
+    '<td>' + esc(v.VendorName) + '</td><td>' + esc(v.CompanyName) + '</td><td>' +
+    (hasEmail(v) ? esc(v.Email) : '<span class="chip warn" title="' + esc(NO_EMAIL_MSG) + '">Email Not Set</span> <button class="btn btn-sm btn-primary" type="button" data-act="email" data-id="' + esc(v.VendorID) + '">Add email</button>') +
+    '</td><td>' + esc(v.Phone) + '</td>' +
+    '<td>' + (v.ProductIDs.length ? chips(v.ProductIDs, null, 3) : '<span class="muted small">None</span>') + '</td>' +
+    '<td class="actions"><button class="btn btn-sm btn-ghost" type="button" data-act="edit" data-id="' + esc(v.VendorID) + '">Edit</button>' +
+    '<button class="btn btn-sm btn-ghost danger" type="button" data-act="del" data-id="' + esc(v.VendorID) + '">Delete</button></td></tr>'
+  ).join('') : '<tr><td colspan="7" class="empty">' + (state.vendors.length ? 'No vendors match the filters.' : 'No vendors yet — import or add vendors.') + '</td></tr>';
+  $('vInfo').textContent = list.length ? 'Showing ' + (start + 1) + '–' + (start + rows.length) + ' of ' + list.length : '0 vendors';
+  $('vPage').textContent = 'Page ' + state.vendorPage + ' / ' + pages;
+  $('vPrev').disabled = state.vendorPage <= 1;
+  $('vNext').disabled = state.vendorPage >= pages;
+  $('vSelCount').textContent = state.vendorSel.size;
+  $('vDeleteSel').disabled = !state.vendorSel.size;
+  $('vChkAll').checked = rows.length > 0 && rows.every(v => state.vendorSel.has(v.VendorID));
+}
+
+function renderVmProducts() {
+  renderChecklist($('vmProdList'), state.products.map(p => ({ id: p.ProductID, label: p.ProductName, sub: p.Category })),
+    state.vmProducts, $('vmProdSearch').value, state.products.length ? 'No matching product.' : 'No products yet — type a name below and click “Add product”.');
+  $('vmProdCount').textContent = '(' + state.vmProducts.size + ' selected)';
+}
+
+function openVendorModal(id) {
+  const v = id ? state.vendorById.get(id) : null;
+  $('vmTitle').textContent = v ? 'Edit vendor' : 'Add vendor';
+  $('vmId').value = v ? v.VendorID : '';
+  $('vmEmail').value = v ? v.Email : '';
+  $('vmName').value = v ? v.VendorName : '';
+  $('vmCompany').value = v ? v.CompanyName : '';
+  $('vmPhone').value = v ? v.Phone : '';
+  $('vmCity').value = v ? v.City : '';
+  $('vmNotes').value = v ? v.Notes : '';
+  $('vmProdSearch').value = '';
+  $('vmNewProd').value = '';
+  state.vmProducts = new Set(v ? v.ProductIDs : []);
+  renderVmProducts();
+  let extraHtml = '';
+  if (v && v.ExtraData) {
+    try {
+      const ex = JSON.parse(v.ExtraData);
+      const keys = Object.keys(ex);
+      if (keys.length) extraHtml = '<div class="field"><label>Other imported details</label><dl class="kv" style="margin:0">' +
+        keys.map(k => '<dt>' + esc(k) + '</dt><dd>' + esc(ex[k]) + '</dd>').join('') + '</dl></div>';
+    } catch (e) { /* ignore malformed extra data */ }
+  }
+  if (v) extraHtml += '<p class="muted small" style="margin:0">Added ' + esc(fmtDate(v.CreatedAt)) + (v.CreatedBy ? ' by ' + esc(v.CreatedBy) : '') +
+    (v.UpdatedAt ? ' · Updated ' + esc(fmtDate(v.UpdatedAt)) + (v.UpdatedBy ? ' by ' + esc(v.UpdatedBy) : '') : '') + '</p>';
+  $('vmExtra').innerHTML = extraHtml;
+  openModal('vendorModal');
+  setTimeout(() => $('vmCompany').focus(), 50);
+}
+
+/** Creates products by name (reusing existing ones) and returns their IDs. */
+async function quickAddProducts(names) {
+  const r = await api('addProducts', { names });
+  await loadMaster();
+  return r.products.map(p => p.ProductID);
+}
+
+async function vmAddProduct() {
+  const name = $('vmNewProd').value.trim();
+  if (!name) return toast('Type a product name first.', 'error');
+  const btn = $('vmAddProd');
+  setBusy(btn, true, 'Adding…');
+  try {
+    const ids = await quickAddProducts([name]);
+    ids.forEach(id => state.vmProducts.add(id));
+    $('vmNewProd').value = '';
+    renderVmProducts();
+    toast('"' + name + '" added and ticked.', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+function openEmailModal(id) {
+  const v = state.vendorById.get(id);
+  if (!v) return;
+  $('emVendor').value = id;
+  $('emName').textContent = vendorTitle(v) + (v.VendorName && v.CompanyName ? ' · ' + v.CompanyName : '');
+  $('emEmail').value = v.Email || '';
+  openModal('emailModal');
+  setTimeout(() => $('emEmail').focus(), 50);
+}
+async function saveVendorEmail(ev) {
+  ev.preventDefault();
+  const pe = parseEmailsFE($('emEmail').value);
+  if (pe.invalid.length) return toast('Not a valid email address: ' + pe.invalid.join(', '), 'error');
+  if (!pe.valid.length) return toast('Enter an email address.', 'error');
+  const id = $('emVendor').value, btn = $('emSave');
+  setBusy(btn, true, 'Saving…');
+  try {
+    await api('setVendorEmail', { VendorID: id, Email: pe.valid.join(', ') });
+    closeModal('emailModal');
+    await loadMaster();
+    state.selected.add(id); // ready to use right away
+    renderComposeVendors();
+    toast('Email saved — this vendor can now be selected.', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+async function saveVendor(ev) {
+  ev.preventDefault();
+  const id = $('vmId').value;
+  const pe = parseEmailsFE($('vmEmail').value);
+  const rec = {
+    Email: pe.valid.join(', '), VendorName: $('vmName').value.trim(), CompanyName: $('vmCompany').value.trim(),
+    Phone: $('vmPhone').value.trim(), City: $('vmCity').value.trim(), Notes: $('vmNotes').value.trim(),
+    productIds: [...state.vmProducts]
+  };
+  if (pe.invalid.length) return toast('Not a valid email address: ' + pe.invalid.join(', '), 'error');
+  if (!rec.CompanyName && !rec.VendorName) return toast('Enter the company name.', 'error');
+  if (id) rec.VendorID = id;
+  const btn = $('vmSave');
+  setBusy(btn, true, 'Saving…');
+  try {
+    const r = await api('saveVendor', rec);
+    toast(r.created ? 'Vendor added.' : 'Vendor updated.', 'success');
+    closeModal('vendorModal');
+    await loadMaster();
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+async function deleteVendors(ids) {
+  if (!ids.length) return;
+  const label = ids.length === 1 ? vendorTitle(state.vendorById.get(ids[0]) || {}) || '1 vendor' : ids.length + ' vendors';
+  if (!(await confirmDialog('Delete vendor' + (ids.length > 1 ? 's' : ''), 'Permanently delete ' + label + ' from the vendor database?\nTheir product links are removed too. Campaign history is not affected.', 'Delete', true))) return;
+  try {
+    const r = await api('deleteVendors', { ids });
+    ids.forEach(id => { state.vendorSel.delete(id); state.selected.delete(id); });
+    toast(r.deleted + ' vendor(s) deleted.', 'success');
+    await loadMaster();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function exportVendors() {
+  const list = vendorFiltered();
+  if (!list.length) return toast('Nothing to export.', 'info');
+  downloadCSV('vendors.csv', [['Contact Person Name', 'Company Name', 'Email', 'Phone', 'City', 'Products', 'Notes']]
+    .concat(list.map(v => [v.VendorName, v.CompanyName, v.Email, v.Phone, v.City, v.ProductIDs.map(productName).sort().join(', '), v.Notes])));
+}
+
+/* ======================= PRODUCTS ======================= */
+function productFiltered() {
+  const q = $('pSearch').value.trim().toLowerCase();
+  const noVendor = $('pNoVendor').checked;
+  return state.products.filter(p => (!q || (p.ProductName + ' ' + p.Category + ' ' + p.Unit + ' ' + p.Specification).toLowerCase().includes(q)) &&
+    (!noVendor || !p.VendorCount));
+}
+
+function renderProductTable() {
+  const list = productFiltered();
+  $('pBody').innerHTML = list.length ? list.map(p => {
+    const vids = state.vendorsByProduct.get(p.ProductID) || [];
+    const names = vids.map(id => state.vendorById.get(id)).filter(Boolean).map(vendorTitle).sort((a, b) => a.localeCompare(b));
+    const vendorsCell = names.length
+      ? '<b>' + names.length + '</b>' + (vids.filter(id => !hasEmail(state.vendorById.get(id))).length ? ' <span class="chip warn">' + vids.filter(id => !hasEmail(state.vendorById.get(id))).length + ' without email</span>' : '') + ' <span class="muted small">' + esc(names.slice(0, 3).join(', ')) + (names.length > 3 ? ' +' + (names.length - 3) + ' more' : '') + '</span>'
+      : '<span class="chip warn">No vendors</span>';
+    return '<tr><td><input type="checkbox" class="pchk" data-id="' + esc(p.ProductID) + '"' + (state.productSel.has(p.ProductID) ? ' checked' : '') + '></td>' +
+      '<td><b>' + esc(p.ProductName) + '</b>' + (p.Specification ? '<div class="muted small">' + esc(p.Specification.slice(0, 120)) + '</div>' : '') + '</td>' +
+      '<td>' + esc(p.Category) + '</td><td>' + esc(p.Unit) + '</td><td>' + vendorsCell + '</td>' +
+      '<td class="actions"><button class="btn btn-sm btn-ghost" type="button" data-pact="edit" data-id="' + esc(p.ProductID) + '">Edit</button>' +
+      '<button class="btn btn-sm btn-ghost danger" type="button" data-pact="del" data-id="' + esc(p.ProductID) + '">Delete</button></td></tr>';
+  }).join('') : '<tr><td colspan="6" class="empty">' + (state.products.length ? 'No products match.' : 'No products yet — click “+ Add product” or “+ Add multiple”.') + '</td></tr>';
+  $('pSelCount').textContent = state.productSel.size;
+  $('pDeleteSel').disabled = !state.productSel.size;
+  $('pChkAll').checked = list.length > 0 && list.every(p => state.productSel.has(p.ProductID));
+}
+
+function pmVendorItems() {
+  return state.vendors.map(v => ({ id: v.VendorID, label: vendorTitle(v) + (v.VendorName && v.CompanyName ? ' (' + v.CompanyName + ')' : ''), sub: v.Email || 'email not set' }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+function renderPmVendors() {
+  state.pmShown = renderChecklist($('pmVendorList'), pmVendorItems(), state.pmVendors, $('pmVendorSearch').value,
+    state.vendors.length ? 'No matching vendor.' : 'No vendors yet — add them in the Vendors tab.');
+  $('pmVendorCount').textContent = '(' + state.pmVendors.size + ' selected)';
+}
+
+function openProductModal(id) {
+  const p = id ? state.productById.get(id) : null;
+  $('pmTitle').textContent = p ? 'Edit product' : 'Add product';
+  $('pmId').value = p ? p.ProductID : '';
+  $('pmName').value = p ? p.ProductName : '';
+  $('pmCategory').value = p ? p.Category : '';
+  $('pmUnit').value = p ? p.Unit : '';
+  $('pmSpec').value = p ? p.Specification : '';
+  $('pmVendorSearch').value = '';
+  state.pmVendors = new Set(p ? state.vendorsByProduct.get(p.ProductID) || [] : []);
+  renderPmVendors();
+  openModal('productModal');
+  setTimeout(() => $('pmName').focus(), 50);
+}
+
+async function saveProduct(ev) {
+  ev.preventDefault();
+  const id = $('pmId').value;
+  const rec = {
+    ProductName: $('pmName').value.trim(), Category: $('pmCategory').value.trim(), Unit: $('pmUnit').value.trim(),
+    Specification: $('pmSpec').value.trim(), vendorIds: [...state.pmVendors]
+  };
+  if (!rec.ProductName) return toast('Enter the product name.', 'error');
+  if (id) rec.ProductID = id;
+  const btn = $('pmSave');
+  setBusy(btn, true, 'Saving…');
+  try {
+    const r = await api('saveProduct', rec);
+    toast(r.created ? 'Product added.' : 'Product updated.', 'success');
+    closeModal('productModal');
+    await loadMaster();
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+async function deleteProducts(ids) {
+  if (!ids.length) return;
+  const links = ids.reduce((n, id) => n + (state.vendorsByProduct.get(id) || []).length, 0);
+  const label = ids.length === 1 ? '"' + productName(ids[0]) + '"' : ids.length + ' products';
+  const ok = await confirmDialog('Delete product' + (ids.length > 1 ? 's' : ''),
+    'Permanently delete ' + label + '?' + (links ? '\n' + links + ' vendor link(s) will be removed. The vendors themselves are kept.' : '') + '\nCampaign history is not affected.', 'Delete', true);
+  if (!ok) return;
+  try {
+    const r = await api('deleteProducts', { ids });
+    ids.forEach(id => state.productSel.delete(id));
+    toast(r.deleted + ' product(s) deleted.', 'success');
+    await loadMaster();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function openBulkModal() {
+  $('bulkNames').value = '';
+  openModal('bulkModal');
+  setTimeout(() => $('bulkNames').focus(), 50);
+}
+
+async function saveBulkProducts() {
+  const names = $('bulkNames').value.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  if (!names.length) return toast('Enter at least one product name.', 'error');
+  const btn = $('bulkSave');
+  setBusy(btn, true, 'Adding…');
+  try {
+    const r = await api('addProducts', { names });
+    toast(r.added + ' product(s) added' + (r.existing ? ', ' + r.existing + ' already existed' : '') + '. Now link vendors with “Edit”.', 'success', 6000);
+    closeModal('bulkModal');
+    await loadMaster();
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+/* ======================= IMPORT ======================= */
+function cleanGrid(grid) {
+  const rows = (grid || []).map(r => (r || []).map(c => String(c == null ? '' : c).replace(/\u00A0/g, ' ').trim()))
+    .filter(r => r.some(c => c !== ''));
+  const width = rows.reduce((w, r) => Math.max(w, r.length), 0);
+  return rows.map(r => { while (r.length < width) r.push(''); return r; });
+}
+function extractEmails(cell) {
+  const s = String(cell || '');
+  const found = (s.match(EMAIL_FIND_RE) || []).map(e => e.replace(/\.+$/, '').toLowerCase());
+  if (!found.length && s.indexOf('@') >= 0) return [s.trim().toLowerCase()];
+  return [...new Set(found)];
+}
+function bestEmailColumn(grid) {
+  const width = grid[0] ? grid[0].length : 0;
+  let best = { col: -1, count: 0 };
+  for (let i = 0; i < width; i++) {
+    const n = grid.reduce((s, r) => s + ((r[i] || '').match(EMAIL_FIND_RE) ? 1 : 0), 0);
+    if (n > best.count) best = { col: i, count: n };
+  }
+  return best;
+}
+function freeTextGrid(text) {
+  const out = [['Contact Person Name', 'Email']];
+  const re = /(?:"?([^"<>,;\n\t@]*?)"?\s*<\s*)?([A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\s*>?/g;
+  let m;
+  while ((m = re.exec(text))) out.push([(m[1] || '').trim(), m[2].replace(/\.+$/, '')]);
+  return out.length > 1 ? out : [];
+}
+/** Picks the worksheet that looks like the vendor list (has Company + Products/Email headers); ignores notes sheets. */
+function bestSheetName(wb) {
+  let best = wb.SheetNames[0], bestScore = -1;
+  wb.SheetNames.forEach(n => {
+    const g = gridFromSheet(wb, n);
+    if (!g.length) return;
+    const hdr = g[0].map(h => String(h || ''));
+    let sc = 0;
+    if (hdr.some(h => HEADER_PATTERNS.CompanyName.test(h))) sc += 3;
+    if (hdr.some(h => HEADER_PATTERNS.Email.test(h))) sc += 2;
+    if (hdr.some(h => HEADER_PATTERNS.Products.test(h))) sc += 2;
+    if (hdr.some(h => HEADER_PATTERNS.VendorName.test(h))) sc += 1;
+    if (g.length > 1) sc += 0.5;
+    if (sc > bestScore) { best = n; bestScore = sc; }
+  });
+  return best;
+}
+function gridFromSheet(wb, name) {
+  return cleanGrid(XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: '', blankrows: false }));
+}
+function gridFromText(text) {
+  text = String(text || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim();
+  if (!text) return [];
+  let grid;
+  if (text.indexOf('\t') >= 0) grid = text.split('\n').map(l => l.split('\t'));
+  else {
+    const wb = XLSX.read(text, { type: 'string', raw: true });
+    grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '', blankrows: false });
+  }
+  grid = cleanGrid(grid);
+  // If the text is not a proper table (e.g. emails separated by commas on one line), extract emails directly.
+  const best = bestEmailColumn(grid);
+  // A real table keeps its emails in one column; a loose list spreads them across cells.
+  const hasEmail = c => /[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(c);
+  const emailCells = grid.reduce((n, r) => n + r.filter(hasEmail).length, 0);
+  if (best.col < 0 || best.count < emailCells * 0.8) return freeTextGrid(text);
+  return grid;
+}
+function detectHeader(grid) {
+  if (grid.length < 2) return false;
+  const first = grid[0];
+  if (first.some(c => (c || '').match(EMAIL_FIND_RE))) return false;
+  return first.some(c => c && Object.values(HEADER_PATTERNS).some(re => re.test(c)));
+}
+function autoMap(grid, hasHeader) {
+  const width = grid[0] ? grid[0].length : 0;
+  const map = {};
+  FIELDS.forEach(f => { map[f.key] = -1; });
+  const used = new Set();
+  if (hasHeader) {
+    const hdr = grid[0];
+    MAP_PRIORITY.forEach(key => {
+      for (let i = 0; i < width; i++) {
+        if (used.has(i) || !hdr[i]) continue;
+        if (HEADER_PATTERNS[key].test(hdr[i])) { map[key] = i; used.add(i); break; }
+      }
+    });
+  }
+  const body = hasHeader ? grid.slice(1) : grid;
+  if (map.Email < 0) {
+    const b = bestEmailColumn(body);
+    if (b.col >= 0 && !used.has(b.col)) { map.Email = b.col; used.add(b.col); }
+  }
+  if (!hasHeader && body.length) {
+    const ratio = (i, test) => {
+      const vals = body.map(r => r[i]).filter(Boolean);
+      return vals.length ? vals.filter(test).length / vals.length : 0;
+    };
+    // No header row: first text column → Company Name, second → Contact Person (change in step 2 if needed)
+    const isText = v => /[A-Za-z]/.test(v) && v.indexOf('@') < 0 && !PHONE_RE.test(v);
+    for (let i = 0; i < width && map.CompanyName < 0; i++) {
+      if (!used.has(i) && ratio(i, isText) >= 0.6) { map.CompanyName = i; used.add(i); }
+    }
+    for (let i = 0; i < width && map.VendorName < 0; i++) {
+      if (!used.has(i) && ratio(i, isText) >= 0.6) { map.VendorName = i; used.add(i); }
+    }
+  }
+  return map;
+}
+function colLetter(i) {
+  let s = ''; i++;
+  while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); }
+  return s;
+}
+function columnLabels() {
+  const g = state.imp.grid, h = state.imp.hasHeader;
+  const width = g[0] ? g[0].length : 0;
+  const sample = g[h ? 1 : 0] || [];
+  return Array.from({ length: width }, (_, i) => {
+    const head = h && g[0][i] ? g[0][i] : '';
+    return 'Column ' + colLetter(i) + (head ? ' — ' + head : (sample[i] ? ' — e.g. ' + String(sample[i]).slice(0, 28) : ''));
+  });
+}
+
+function setGrid(grid) {
+  state.imp.grid = grid;
+  $('impResult').innerHTML = '';
+  if (!grid.length) {
+    $('impMapCard').classList.add('hidden');
+    $('impReviewCard').classList.add('hidden');
+    toast('No data found. Check the file or pasted text.', 'error');
+    return;
+  }
+  state.imp.hasHeader = detectHeader(grid);
+  $('impHasHeader').checked = state.imp.hasHeader;
+  state.imp.map = autoMap(grid, state.imp.hasHeader);
+  $('impMapCard').classList.remove('hidden');
+  $('impReviewCard').classList.remove('hidden');
+  renderMapping();
+  buildRecords();
+  renderReview();
+  if (state.imp.map.CompanyName < 0) toast('Could not find the Company Name column — please choose it in step 2.', 'error', 6000);
+}
+
+function renderMapping() {
+  const labels = columnLabels();
+  $('impMapGrid').innerHTML = FIELDS.map(f =>
+    '<div class="field"><label for="map_' + f.key + '">' + esc(f.label) + '</label><select id="map_' + f.key + '" data-key="' + f.key + '">' +
+    '<option value="-1">— Not mapped —</option>' +
+    labels.map((l, i) => '<option value="' + i + '"' + (state.imp.map[f.key] === i ? ' selected' : '') + '>' + esc(l) + '</option>').join('') +
+    '</select></div>').join('');
+}
+
+/** Split on ; | new line. Commas split only when none of those is present, and never inside brackets. */
+function splitProducts(s) {
+  const t = String(s || '');
+  let parts;
+  if (/[;|\n]/.test(t)) parts = t.split(/[;|\n]+/);
+  else {
+    parts = []; let depth = 0, cur = '';
+    for (const ch of t) {
+      if (ch === '(' || ch === '[') depth++;
+      else if ((ch === ')' || ch === ']') && depth > 0) depth--;
+      if (ch === ',' && depth === 0) { parts.push(cur); cur = ''; } else cur += ch;
+    }
+    parts.push(cur);
+  }
+  return [...new Set(parts.map(x => x.trim()).filter(Boolean))];
+}
+
+function buildRecords() {
+  const { grid, hasHeader, map } = state.imp;
+  const dataRows = hasHeader ? grid.slice(1) : grid;
+  const keyOf = (company, name) => String(company || name || '').trim().toLowerCase();
+  const existing = new Map(state.vendors.map(v => [keyOf(v.CompanyName, v.VendorName), v]));
+  const seen = new Map();   // company key → products already queued from earlier rows of this file
+  const recs = [];
+  dataRows.forEach((row, ri) => {
+    const rowNo = ri + 1 + (hasHeader ? 1 : 0);
+    const get = key => (map[key] >= 0 ? String(row[map[key]] || '').trim() : '');
+    const emailCell = get('Email');
+    const pe = parseEmailsFE(emailCell);
+    const products = splitProducts(get('Products'));
+    const rec = { VendorName: get('VendorName'), CompanyName: get('CompanyName'), Products: products,
+      Email: pe.valid.join(', '), BadEmail: pe.invalid.join(', '), _row: rowNo };
+    const key = keyOf(rec.CompanyName, rec.VendorName);
+    if (!key) { if (emailCell || products.length) recs.push({ ...rec, Email: emailCell, _status: 'invalid', _why: 'No company name' }); return; }
+    let st = 'new';
+    if (seen.has(key)) {
+      const q = seen.get(key);
+      const fresh = products.filter(n => !q.has(n.toLowerCase()));
+      fresh.forEach(n => q.add(n.toLowerCase()));
+      st = fresh.length || rec.Email ? 'link' : 'dupfile';
+    } else {
+      seen.set(key, new Set(products.map(n => n.toLowerCase())));
+      if (existing.has(key)) {
+        const ex = existing.get(key);
+        const have = new Set(ex.ProductIDs.map(pid => productName(pid).toLowerCase()));
+        const newEmail = rec.Email && parseEmailsFE(ex.Email).valid.join(',') !== rec.Email;
+        st = products.some(n => !have.has(n.toLowerCase())) ? 'link' : (newEmail && !hasEmail(ex) ? 'link' : 'exists');
+      }
+    }
+    recs.push({ ...rec, _status: st });
+  });
+  state.imp.records = recs;
+}
+
+const IMP_STATUS = {
+  new: ['New', 'b-success'], link: ['Existing — new products will be linked', 'b-info'], exists: ['Already in database', 'b-muted'],
+  dupfile: ['Duplicate in file', 'b-warn'], invalid: ['No company name', 'b-danger']
+};
+function renderReview() {
+  const recs = state.imp.records;
+  const count = s => recs.filter(r => r._status === s).length;
+  $('impStats').innerHTML =
+    '<div class="stat"><b>' + recs.length + '</b><span>Records read</span></div>' +
+    '<div class="stat s-success"><b>' + count('new') + '</b><span>New vendors</span></div>' +
+    '<div class="stat s-info"><b>' + count('link') + '</b><span>Existing, new products</span></div>' +
+    '<div class="stat"><b>' + count('exists') + '</b><span>Already in database</span></div>' +
+    '<div class="stat s-warn"><b>' + count('dupfile') + '</b><span>Duplicates in file</span></div>' +
+    '<div class="stat s-danger"><b>' + count('invalid') + '</b><span>No company name</span></div>' +
+    '<div class="stat s-warn"><b>' + recs.filter(r => r._status !== 'invalid' && !r.Email).length + '</b><span>Without email (add later)</span></div>';
+  const order = { invalid: 0, new: 1, link: 2, dupfile: 3, exists: 4 };
+  const shown = recs.slice().sort((a, b) => order[a._status] - order[b._status] || a._row - b._row).slice(0, 300);
+  $('impBody').innerHTML = shown.map(r => {
+    const s = IMP_STATUS[r._status];
+    const em = r._status === 'invalid' ? esc(r.Email || '—')
+      : r.Email ? esc(r.Email) + (r.BadEmail ? ' <span class="chip warn">ignored: ' + esc(r.BadEmail) + '</span>' : '')
+      : '<span class="chip warn">Email not set</span>' + (r.BadEmail ? ' <span class="chip warn">ignored: ' + esc(r.BadEmail) + '</span>' : '');
+    return '<tr><td>' + r._row + '</td><td><span class="badge ' + s[1] + '">' + s[0] + '</span></td><td>' + em + '</td><td>' +
+      esc(r.CompanyName) + '</td><td>' + esc(r.VendorName) + '</td><td class="small">' + esc(r.Products.join('; ')) + '</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="empty">No records.</td></tr>';
+  $('impMore').textContent = recs.length > 300 ? 'Showing 300 of ' + recs.length + ' records (problem rows first).' : '';
+  $('impBtn').disabled = !(count('new') || count('link') || ($('impUpdateExisting').checked && count('exists')));
+}
+
+async function doImport() {
+  const upd = $('impUpdateExisting').checked;
+  const rows = state.imp.records.filter(r => r._status === 'new' || r._status === 'link' || (upd && r._status === 'exists')).map(r => ({
+    Email: r.Email, CompanyName: r.CompanyName, VendorName: r.VendorName, Products: r.Products
+  }));
+  const withoutEmail = rows.filter(r => !r.Email).length;
+  if (!rows.length) return toast('Nothing new to import.', 'info');
+  if (!(await confirmDialog('Import vendors', 'Save ' + rows.length + ' vendor record(s) to the database?' +
+    (withoutEmail ? '\n' + withoutEmail + ' of them have no email yet — they will still show for their products; add the email later.' : '') +
+    '\nProducts that don\'t exist yet are created automatically. Existing product links are never removed.' +
+    (upd ? '\nEmpty details of existing vendors will be filled in (existing values are never overwritten).' : ''), 'Import'))) return;
+  const btn = $('impBtn');
+  const totals = { added: 0, updated: 0, linked: 0, linksAdded: 0, productsCreated: 0, duplicates: 0, invalid: 0, noEmail: 0 };
+  try {
+    for (let i = 0; i < rows.length; i += IMPORT_CHUNK) {
+      setBusy(btn, true, 'Importing ' + Math.min(i + IMPORT_CHUNK, rows.length) + ' / ' + rows.length + '…');
+      const r = await api('importVendors', { rows: rows.slice(i, i + IMPORT_CHUNK), updateExisting: upd });
+      Object.keys(totals).forEach(k => { totals[k] += r[k] || 0; });
+    }
+    $('impResult').innerHTML = '<div class="notice success">Import complete: <b>' + totals.added + '</b> vendors added, <b>' + totals.linksAdded +
+      '</b> product links added' + (totals.productsCreated ? ' (' + totals.productsCreated + ' new products created)' : '') +
+      (totals.updated ? ', ' + totals.updated + ' existing vendors updated' : '') +
+      (totals.noEmail ? '. <b>' + totals.noEmail + '</b> vendors have no email yet (add it from the Vendors tab or while selecting a product)' : '') +
+      '. Skipped: ' + totals.duplicates + ' duplicates, ' + totals.invalid + ' invalid.</div>';
+    toast(totals.added + ' vendor(s) added.', 'success');
+    await loadMaster();
+    buildRecords();
+    renderReview();
+  } catch (e) {
+    $('impResult').innerHTML = '<div class="notice danger">' + esc(e.message) + (totals.added ? ' (' + totals.added + ' were saved before the error.)' : '') + '</div>';
+    await loadMaster();
+  } finally {
+    setBusy(btn, false);
+    renderReview();
+  }
+}
+
+async function onImportFile(file) {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  try {
+    if (/\.(csv|txt|tsv)$/.test(name)) {
+      state.imp.wb = null;
+      $('impSheetWrap').classList.add('hidden');
+      setGrid(gridFromText(await file.text()));
+    } else if (/\.(xlsx|xls|xlsm|ods)$/.test(name)) {
+      const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      state.imp.wb = wb;
+      const pick = bestSheetName(wb);
+      $('impSheet').innerHTML = wb.SheetNames.map(n => '<option' + (n === pick ? ' selected' : '') + '>' + esc(n) + '</option>').join('');
+      $('impSheetWrap').classList.toggle('hidden', wb.SheetNames.length < 2);
+      setGrid(gridFromSheet(wb, pick));
+    } else {
+      toast('Unsupported file type. Use .xlsx, .xls, .csv or .txt', 'error');
+    }
+  } catch (e) {
+    toast('Could not read the file: ' + e.message, 'error');
+  }
+}
+
+function downloadTemplate() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['Email', 'Company Name', 'Contact Person Name', 'Products'],
+    ['sales@example.com, accounts@example.com', 'Ramesh Chemicals', 'Ramesh Kumar', 'Titanium Dioxide; Talc Powder'],
+    ['', 'Sharma Traders (email not known yet)', '', 'Xylene; Epoxy Resin']
+  ]);
+  ws['!cols'] = [{ wch: 34 }, { wch: 34 }, { wch: 28 }, { wch: 44 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Vendors');
+  XLSX.writeFile(wb, 'vendor-import-template.xlsx');
+}
+
+function clearImport() {
+  $('impFile').value = '';
+  $('impPaste').value = '';
+  $('impSheetWrap').classList.add('hidden');
+  $('impMapCard').classList.add('hidden');
+  $('impReviewCard').classList.add('hidden');
+  $('impResult').innerHTML = '';
+  state.imp = { wb: null, grid: [], hasHeader: true, map: {}, records: [] };
+}
+
+/* ======================= REPLIES & COMPARISON ======================= */
+state.rp = { indents: [], unassigned: [], report: null, sel: '' };
+
+async function loadReplyIndents() {
+  try {
+    const r = await api('replyIndents');
+    state.rp.indents = r.indents;
+    state.rp.unassigned = r.unassigned;
+    // years available in the data
+    const years = new Set();
+    r.indents.forEach(i => { [i.FirstAt].concat(i.ReplyDates || []).forEach(d => { const y = new Date(d).getFullYear(); if (y) years.add(y); }); });
+    const curY = $('rpYear').value;
+    $('rpYear').innerHTML = '<option value="">All years</option>' + [...years].sort((a, b) => b - a).map(y => '<option>' + y + '</option>').join('');
+    if (curY && years.has(Number(curY))) $('rpYear').value = curY;
+    $('rpSyncInfo').textContent = (r.lastSync ? 'Last checked Gmail: ' + fmtDate(r.lastSync) : 'Gmail has not been checked yet — click “Sync replies now”.') +
+      (r.autoSync ? ' · Auto-sync is ON (every 15 min).' : ' · Auto-sync is OFF (turn it on from the Google Sheet menu).');
+    renderUnassigned();
+    await applyRpFilters(true);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+/** Indents that match the filter bar (date range, month, year, indent/product text). */
+function rpDateOk(ts) {
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return false;
+  const t = d.getTime(), from = $('rpFrom').value, to = $('rpTo').value, m = $('rpMonth').value, y = $('rpYear').value;
+  if (from && t < new Date(from + 'T00:00:00').getTime()) return false;
+  if (to && t > new Date(to + 'T23:59:59.999').getTime()) return false;
+  if (y && d.getFullYear() !== Number(y)) return false;
+  if (m !== '' && d.getMonth() !== Number(m)) return false;
+  return true;
+}
+function rpDatesActive() { return !!($('rpFrom').value || $('rpTo').value || $('rpMonth').value !== '' || $('rpYear').value); }
+function rpFiltered() {
+  const q = $('rpIndentQ').value.trim().toLowerCase(), byReply = $('rpBy').value === 'reply', active = rpDatesActive();
+  return state.rp.indents.filter(i =>
+    (!q || (i.IndentNo + ' ' + (i.ProductNames || '') + ' ' + (i.Subject || '')).toLowerCase().includes(q)) &&
+    (!active || (byReply ? (i.ReplyDates || []).some(rpDateOk) : rpDateOk(i.FirstAt))));
+}
+
+async function applyRpFilters(forceLoad) {
+  const list = rpFiltered();
+  const byReply = $('rpBy').value === 'reply', active = rpDatesActive();
+  $('rpCount').textContent = '(' + list.length + ' of ' + state.rp.indents.length + (active || $('rpIndentQ').value.trim() ? ' — filtered' : '') + ')';
+  $('rpPeriodTh').textContent = byReply && active ? 'Replies in period' : 'Replies';
+  $('rpOverview').innerHTML = list.length ? list.map(i => {
+    const nReplies = byReply && active ? (i.ReplyDates || []).filter(rpDateOk).length : (i.ReplyDates || []).length;
+    const awaiting = Math.max(0, i.Vendors - i.Replied);
+    return '<tr' + (i.IndentNo === state.rp.sel ? ' class="l1"' : '') + '><td><b>' + esc(i.IndentNo) + '</b></td><td style="white-space:nowrap">' + esc(fmtDate(i.FirstAt)) + '</td>' +
+      '<td class="small">' + esc((i.ProductNames || i.Subject || '').slice(0, 90)) + '</td><td class="num">' + i.Vendors + '</td><td class="num"><b style="color:var(--success)">' + i.Replied + '</b></td>' +
+      '<td class="num">' + (awaiting ? '<b style="color:var(--warn)">' + awaiting + '</b>' : 0) + '</td><td class="num">' + nReplies + (i.Unmatched ? ' <span class="chip warn">' + i.Unmatched + ' to assign</span>' : '') + '</td>' +
+      '<td style="white-space:nowrap">' + (i.LastReplyAt ? esc(fmtDate(i.LastReplyAt)) : '—') + '</td>' +
+      '<td class="actions"><button class="btn btn-sm btn-primary" type="button" data-compare="' + esc(i.IndentNo) + '">Compare</button></td></tr>';
+  }).join('') : '<tr><td colspan="9" class="empty">' + (state.rp.indents.length ? 'No indents match these filters.' : 'No enquiries sent yet.') + '</td></tr>';
+  const sel = $('rpIndent');
+  sel.innerHTML = list.length ? list.map(i => '<option value="' + esc(i.IndentNo) + '">' + esc(i.IndentNo + ' (' + i.Replied + '/' + i.Vendors + ' replied)') + '</option>').join('') : '<option value="">—</option>';
+  const keep = list.some(i => i.IndentNo === state.rp.sel);
+  const before = state.rp.sel;
+  if (keep) sel.value = state.rp.sel; else state.rp.sel = sel.value;
+  if (!sel.value) { state.rp.report = null; $('rpBody').innerHTML = '<div class="card"><div class="empty">' + (list.length ? '' : 'No indent to show — change the filters.') + '</div></div>'; return; }
+  if (forceLoad || !keep || before !== state.rp.sel) await loadReport();
+}
+
+function compareIndent(ind) {
+  $('rpIndent').value = ind;
+  state.rp.sel = ind;
+  applyRpFilters(false);
+  loadReport().then(() => $('rpBody').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+}
+
+function clearRpFilters() {
+  ['rpFrom', 'rpTo', 'rpIndentQ'].forEach(id => { $(id).value = ''; });
+  $('rpMonth').value = ''; $('rpYear').value = ''; $('rpBy').value = 'sent';
+  applyRpFilters(false);
+}
+
+async function loadReport() {
+  const ind = $('rpIndent').value;
+  state.rp.sel = ind;
+  if (!ind) return;
+  $('rpBody').innerHTML = '<div class="card"><div class="empty">Loading…</div></div>';
+  try {
+    state.rp.report = await api('indentReport', { indentNo: ind });
+    renderReport();
+  } catch (e) { $('rpBody').innerHTML = '<div class="card"><div class="notice danger">' + esc(e.message) + '</div></div>'; }
+}
+
+function replyBadge(v) {
+  if (v.Status !== 'Sent') return '<span class="badge ' + statusClass(v.Status) + '">' + esc(v.Status || '—') + '</span>' + (v.Error ? '<div class="muted small">' + esc(v.Error) + '</div>' : '');
+  if (v.replyCount) return '<span class="badge b-success">Replied' + (v.replyCount > 1 ? ' (' + v.replyCount + ')' : '') + '</span>';
+  if (v.bounced) return '<span class="badge b-danger">Bounced</span>';
+  if (v.autoReply) return '<span class="badge b-muted">Auto-reply only</span>';
+  const days = Math.floor((Date.now() - new Date(v.SentAt).getTime()) / 86400000);
+  return '<span class="badge b-warn">Awaiting reply</span>' + (days >= 1 ? '<div class="muted small">' + days + ' day' + (days > 1 ? 's' : '') + ' since sent</div>' : '');
+}
+
+function quoteOf(vid, pid) {
+  return (state.rp.report.quotes.find(q => q.VendorID === vid && q.ProductID === pid)) || {};
+}
+
+function renderReport() {
+  const r = state.rp.report;
+  const sent = r.vendors.filter(v => v.Status === 'Sent');
+  const replied = sent.filter(v => v.replyCount).length;
+  const bounced = sent.filter(v => !v.replyCount && v.bounced).length;
+  const awaiting = sent.length - replied - bounced;
+  const failed = r.vendors.length - sent.length;
+  const orphan = r.replies.filter(x => !x.VendorID).length;
+
+  let html = '<div class="card"><div class="card-head"><h3>Sent vs replied — ' + esc(r.indentNo) + '</h3></div>' +
+    '<div class="stats">' +
+    '<div class="stat"><b>' + sent.length + '</b><span>Emails sent</span></div>' +
+    '<div class="stat s-success"><b>' + replied + '</b><span>Replied</span></div>' +
+    '<div class="stat s-warn"><b>' + awaiting + '</b><span>Awaiting reply</span></div>' +
+    '<div class="stat s-danger"><b>' + bounced + '</b><span>Bounced</span></div>' +
+    (failed ? '<div class="stat"><b>' + failed + '</b><span>Not sent / failed</span></div>' : '') +
+    (orphan ? '<div class="stat s-info"><b>' + orphan + '</b><span>To assign</span></div>' : '') +
+    '</div>' +
+    '<p class="muted small" style="margin:0 0 10px">' + esc(r.subject) + ' · first sent ' + esc(fmtDate(r.createdAt)) + '</p>' +
+    '<div class="table-wrap"><table class="data"><thead><tr><th>Vendor</th><th>Email</th><th>Products asked</th><th>Sent</th><th>Reply</th><th>Last reply</th><th>Preview</th><th></th></tr></thead><tbody>' +
+    r.vendors.map(v => '<tr><td><b>' + esc(v.CompanyName || v.VendorName) + '</b></td><td class="small">' + esc(v.Email || '—') + '</td>' +
+      '<td class="small">' + esc(v.ProductNames) + '</td><td style="white-space:nowrap">' + (v.Status === 'Sent' ? esc(fmtDate(v.SentAt)) : '—') + '</td>' +
+      '<td>' + replyBadge(v) + '</td><td style="white-space:nowrap">' + (v.lastReplyAt ? esc(fmtDate(v.lastReplyAt)) : '—') + '</td>' +
+      '<td class="small">' + esc(v.lastPreview) + (v.hasAttachment ? ' 📎' : '') + '</td>' +
+      '<td class="actions">' + ((v.replyCount || v.autoReply || v.bounced) ? '<button class="btn btn-sm" type="button" data-viewreplies="' + esc(v.VendorID) + '">View</button>' : '') + '</td></tr>').join('') +
+    '</tbody></table></div></div>';
+
+  // Rate comparison
+  html += '<div class="card"><div class="card-head"><h3>Rate comparison</h3></div>' +
+    '<p class="muted small" style="margin:0 0 10px">Type the rate each vendor quoted (from their reply or attachment). It is saved automatically. The lowest rate for each product is highlighted <b>L1</b>.</p>';
+  if (!r.items.length) html += '<div class="empty">This enquiry has no product list to compare.</div>';
+  r.items.forEach(it => {
+    const vs = r.vendors.filter(v => v.Status === 'Sent' && (!v.ProductIDs.length || v.ProductIDs.includes(it.productId)));
+    html += '<h4 style="margin:14px 0 6px">' + esc(it.name) + (it.qty ? ' <span class="muted small">· Qty ' + esc(it.qty) + '</span>' : '') + '</h4>' +
+      '<div class="table-wrap"><table class="data" data-ptable="' + esc(it.productId) + '"><thead><tr><th>Vendor</th><th>Reply</th><th style="width:110px">Rate</th><th>GST</th><th>Freight</th><th>Lead time</th><th>Payment terms</th><th>Remarks</th><th style="width:90px">vs L1</th></tr></thead><tbody>' +
+      (vs.length ? vs.map(v => {
+        const q = quoteOf(v.VendorID, it.productId);
+        const inp = (k, ph, val, extra) => '<td><input type="text" class="qin" data-q="' + k + '" data-v="' + esc(v.VendorID) + '" data-p="' + esc(it.productId) + '" placeholder="' + ph + '" value="' + esc(val == null ? '' : val) + '"' + (extra || '') + '></td>';
+        return '<tr data-vrow="' + esc(v.VendorID) + '"><td><b>' + esc(v.CompanyName || v.VendorName) + '</b></td><td>' + replyBadge(v) + '</td>' +
+          inp('Rate', '0.00', q.Rate, ' inputmode="decimal"') + inp('Gst', '18%', q.Gst) + inp('Freight', '', q.Freight) + inp('LeadTime', 'days', q.LeadTime) +
+          inp('PaymentTerms', '', q.PaymentTerms) + inp('Remarks', '', q.Remarks) + '<td class="l1cell small"></td></tr>';
+      }).join('') : '<tr><td colspan="9" class="empty">No vendor was asked for this product.</td></tr>') + '</tbody></table></div>';
+  });
+  html += '</div>';
+  $('rpBody').innerHTML = html;
+  r.items.forEach(it => markL1(it.productId));
+}
+
+/** Highlights the lowest rate in a product table and shows each vendor's % above it. */
+function markL1(pid) {
+  const tbl = document.querySelector('[data-ptable="' + (window.CSS && CSS.escape ? CSS.escape(pid) : pid) + '"]');
+  if (!tbl) return;
+  const rows = [...tbl.querySelectorAll('tbody tr[data-vrow]')];
+  const rates = rows.map(tr => parseFloat(String(tr.querySelector('[data-q="Rate"]').value).replace(/[,₹\s]/g, '')));
+  const valid = rates.filter(x => !isNaN(x) && x > 0);
+  const min = valid.length ? Math.min(...valid) : null;
+  rows.forEach((tr, i) => {
+    const x = rates[i], cell = tr.querySelector('.l1cell');
+    tr.classList.toggle('l1', min !== null && x === min && valid.length > 1);
+    if (min === null || isNaN(x) || x <= 0) cell.innerHTML = '';
+    else if (x === min) cell.innerHTML = valid.length > 1 ? '<span class="badge b-success">L1 (lowest)</span>' : '';
+    else cell.innerHTML = '+' + ((x - min) / min * 100).toFixed(1) + '%';
+  });
+}
+
+async function saveQuoteRow(input) {
+  const tr = input.closest('tr');
+  const vid = input.dataset.v, pid = input.dataset.p;
+  const val = k => tr.querySelector('[data-q="' + k + '"]').value.trim();
+  const body = { indentNo: state.rp.report.indentNo, vendorId: vid, productId: pid, Rate: val('Rate'), Gst: val('Gst'), Freight: val('Freight'), LeadTime: val('LeadTime'), PaymentTerms: val('PaymentTerms'), Remarks: val('Remarks') };
+  try {
+    await api('saveQuote', body);
+    const list = state.rp.report.quotes;
+    const i = list.findIndex(q => q.VendorID === vid && q.ProductID === pid);
+    const rec = { VendorID: vid, ProductID: pid, Rate: body.Rate === '' ? '' : parseFloat(body.Rate.replace(/[,₹\s]/g, '')), Gst: body.Gst, Freight: body.Freight, LeadTime: body.LeadTime, PaymentTerms: body.PaymentTerms, Remarks: body.Remarks };
+    if (i >= 0) list[i] = rec; else list.push(rec);
+    markL1(pid);
+    input.style.borderColor = '';
+  } catch (e) { input.style.borderColor = 'var(--danger)'; toast(e.message, 'error'); }
+}
+
+function openReplies(vid) {
+  const r = state.rp.report;
+  const v = r.vendors.find(x => x.VendorID === vid);
+  const list = r.replies.filter(x => x.VendorID === vid);
+  $('rmTitle').textContent = (v ? v.CompanyName || v.VendorName : 'Vendor') + ' — ' + r.indentNo;
+  $('rmBody').innerHTML = list.length ? list.map(x =>
+    '<div class="reply-card"><div class="meta"><b>' + esc(x.FromName || x.FromEmail) + '</b> &lt;' + esc(x.FromEmail) + '&gt; · ' + esc(fmtDate(x.ReceivedAt)) +
+    (x.Type !== 'Reply' ? ' · <span class="badge b-muted">' + esc(x.Type) + '</span>' : '') + '<br>' + esc(x.Subject) + '</div>' +
+    '<div class="pre" style="max-height:300px">' + esc(x.Body) + '</div>' +
+    (x.AttachmentLinks.length ? '<div style="margin-top:8px">📎 ' + x.AttachmentLinks.map((l, i) => '<a href="' + esc(l) + '" target="_blank" rel="noopener">' + esc(x.AttachmentNames[i] || 'Attachment') + '</a>').join(' · ') +
+      '<div class="muted small">Attachments are saved in your Google Drive folder “Vendor Enquiry Replies”.</div></div>' : '') + '</div>').join('')
+    : '<div class="empty">No messages.</div>';
+  openModal('replyModal');
+}
+
+function renderUnassigned() {
+  const list = state.rp.unassigned;
+  $('rpUnassignedCard').classList.toggle('hidden', !list.length);
+  $('rpUnBody').innerHTML = list.map(x =>
+    '<tr><td style="white-space:nowrap">' + esc(fmtDate(x.ReceivedAt)) + '</td><td>' + esc(x.FromName || '') + '<div class="muted small">' + esc(x.FromEmail) + '</div></td>' +
+    '<td class="small">' + esc(x.Subject) + '<div class="muted">' + esc(x.Body.replace(/\s+/g, ' ').slice(0, 120)) + '</div></td><td>' + esc(x.IndentNo || '—') + '</td>' +
+    '<td class="actions"><button class="btn btn-sm btn-primary" type="button" data-assign="' + esc(x.ReplyID) + '">Assign</button></td></tr>').join('');
+}
+
+function fillAssignVendors() {
+  const ind = state.rp.indents.find(i => i.IndentNo === $('asIndent').value);
+  const reply = state.rp.unassigned.find(x => x.ReplyID === $('asReply').value);
+  const guess = reply ? (ind ? ind.vendors : []).find(v => v.VendorID === reply.VendorID) : null;
+  $('asVendor').innerHTML = '<option value="">— Vendor not known —</option>' + (ind ? ind.vendors : []).map(v => '<option value="' + esc(v.VendorID) + '"' + (guess && guess.VendorID === v.VendorID ? ' selected' : '') + '>' + esc(v.Name) + '</option>').join('');
+}
+function openAssign(id) {
+  const x = state.rp.unassigned.find(u => u.ReplyID === id);
+  if (!x) return;
+  $('asReply').value = id;
+  $('asInfo').textContent = x.FromEmail + ' — ' + x.Subject;
+  $('asIndent').innerHTML = state.rp.indents.map(i => '<option' + (i.IndentNo === x.IndentNo ? ' selected' : '') + '>' + esc(i.IndentNo) + '</option>').join('');
+  fillAssignVendors();
+  openModal('assignModal');
+}
+async function saveAssign(ev) {
+  ev.preventDefault();
+  const btn = $('asSave');
+  setBusy(btn, true, 'Saving…');
+  try {
+    await api('assignReply', { replyId: $('asReply').value, indentNo: $('asIndent').value, vendorId: $('asVendor').value });
+    closeModal('assignModal');
+    toast('Reply assigned.', 'success');
+    await loadReplyIndents();
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+async function syncReplies() {
+  const btn = $('rpSync');
+  setBusy(btn, true, 'Reading Gmail…');
+  try {
+    const r = await api('syncReplies');
+    toast(r.added ? r.added + ' new repl' + (r.added === 1 ? 'y' : 'ies') + ' found.' + (r.timedOut ? ' (More remain — sync again.)' : '') : 'No new replies.', r.added ? 'success' : 'info');
+    await loadReplyIndents();
+  } catch (e) { toast(e.message, 'error', 8000); }
+  finally { setBusy(btn, false); }
+}
+
+function exportComparison() {
+  const r = state.rp.report;
+  if (!r) return toast('Choose an indent first.', 'error');
+  const rows = [['Indent No', 'Product', 'Vendor', 'Email', 'Sent status', 'Sent at', 'Reply', 'Last reply at', 'Rate', 'GST', 'Freight', 'Lead time', 'Payment terms', 'Remarks', 'L1']];
+  r.items.forEach(it => {
+    const vs = r.vendors.filter(v => v.Status === 'Sent' && (!v.ProductIDs.length || v.ProductIDs.includes(it.productId)));
+    const rates = vs.map(v => Number(quoteOf(v.VendorID, it.productId).Rate)).filter(x => x > 0);
+    const min = rates.length ? Math.min(...rates) : null;
+    vs.forEach(v => {
+      const q = quoteOf(v.VendorID, it.productId);
+      const status = v.replyCount ? 'Replied' : v.bounced ? 'Bounced' : v.autoReply ? 'Auto-reply only' : 'Awaiting reply';
+      rows.push([r.indentNo, it.name, v.CompanyName || v.VendorName, v.Email, v.Status, v.SentAt ? fmtDate(v.SentAt) : '', status, v.lastReplyAt ? fmtDate(v.lastReplyAt) : '',
+        q.Rate === undefined ? '' : q.Rate, q.Gst || '', q.Freight || '', q.LeadTime || '', q.PaymentTerms || '', q.Remarks || '', min !== null && Number(q.Rate) === min && rates.length > 1 ? 'L1' : '']);
+    });
+  });
+  downloadCSV('comparison-' + r.indentNo.replace(/[^A-Za-z0-9_-]+/g, '-') + '.csv', rows);
+}
+
+/* ======================= HISTORY ======================= */
+async function loadCampaigns() {
+  $('hBody').innerHTML = '<tr><td colspan="11" class="empty">Loading…</td></tr>';
+  try {
+    state.campaigns = await api('listCampaigns');
+    renderHistory();
+  } catch (e) {
+    $('hBody').innerHTML = '<tr><td colspan="11" class="empty">' + esc(e.message) + '</td></tr>';
+  }
+}
+
+function renderHistory() {
+  const q = $('hSearch').value.trim().toLowerCase();
+  const st = $('hStatus').value, failedOnly = $('hFailedOnly').checked;
+  const list = state.campaigns.filter(c =>
+    (!q || (c.IndentNo + ' ' + c.Subject + ' ' + c.ProductNames + ' ' + c.MaterialPreview + ' ' + c.CampaignID + ' ' + c.CreatedBy).toLowerCase().includes(q)) &&
+    (!st || c.Status === st) && (!failedOnly || c.Failed > 0));
+  $('hBody').innerHTML = list.length ? list.map(c =>
+    '<tr><td style="white-space:nowrap">' + esc(fmtDate(c.CreatedAt)) + '</td>' +
+    '<td style="white-space:nowrap"><b>' + esc(c.IndentNo || '—') + '</b></td>' +
+    '<td><b>' + esc(c.Subject) + '</b><div class="muted small">' + esc(c.ProductNames || c.CampaignID) + (c.AttachmentNames ? ' · 📎' : '') + '</div></td>' +
+    '<td>' + esc(c.CreatedBy) + '</td><td class="num">' + c.TotalRecipients + '</td><td class="num">' + c.Sent + '</td>' +
+    '<td class="num">' + (c.Failed ? '<b style="color:var(--danger)">' + c.Failed + '</b>' : 0) + '</td><td class="num">' + c.Skipped + '</td>' +
+    '<td class="num">' + c.Pending + '</td><td><span class="badge ' + statusClass(c.Status) + '">' + esc(c.Status) + '</span></td>' +
+    '<td class="actions"><button class="btn btn-sm" type="button" data-view="' + esc(c.CampaignID) + '">View</button></td></tr>'
+  ).join('') : '<tr><td colspan="11" class="empty">' + (state.campaigns.length ? 'No campaigns match the filters.' : 'No campaigns yet.') + '</td></tr>';
+}
+
+async function openCampaign(id) {
+  $('cdTitle').textContent = 'Campaign ' + id;
+  $('cdBody').innerHTML = '<div class="empty">Loading…</div>';
+  ['cdResume', 'cdRetry', 'cdCancel'].forEach(b => $(b).classList.add('hidden'));
+  openModal('campaignModal');
+  try {
+    state.campaignDetail = await api('getCampaign', { campaignId: id });
+    updateQuota(state.campaignDetail.quota);
+    renderCampaignDetail();
+  } catch (e) {
+    $('cdBody').innerHTML = '<div class="notice danger">' + esc(e.message) + '</div>';
+  }
+}
+
+function renderCampaignDetail(filter) {
+  const d = state.campaignDetail;
+  if (!d) return;
+  const c = d.campaign;
+  if (c.IndentNo) $('cdTitle').textContent = 'Indent ' + c.IndentNo + ' · ' + c.CampaignID;
+  const f = filter !== undefined ? filter : ($('cdFilter') ? $('cdFilter').value : '');
+  const recips = d.recipients.filter(r => !f || r.Status === f);
+  const items = Array.isArray(c.Items) ? c.Items : [];
+  const itemsHtml = items.length
+    ? '<div class="field"><label>Products</label><div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Product</th><th>Specification</th><th>Quantity</th></tr></thead><tbody>' +
+      items.map((it, i) => '<tr><td>' + (i + 1) + '</td><td><b>' + esc(it.name) + '</b></td><td>' + esc(it.spec || '—') + '</td><td>' + esc(it.qty || '—') + '</td></tr>').join('') +
+      '</tbody></table></div></div>'
+    : (c.Material ? '<div class="field"><label>Material required / specifications</label><div class="pre">' + esc(c.Material) + '</div></div>' : '');
+  $('cdBody').innerHTML =
+    '<div class="stats">' +
+    '<div class="stat"><b>' + c.TotalRecipients + '</b><span>Total</span></div>' +
+    '<div class="stat s-success"><b>' + c.Sent + '</b><span>Sent</span></div>' +
+    '<div class="stat s-danger"><b>' + c.Failed + '</b><span>Failed</span></div>' +
+    '<div class="stat s-warn"><b>' + c.Skipped + '</b><span>Skipped</span></div>' +
+    '<div class="stat s-info"><b>' + c.Pending + '</b><span>Pending</span></div>' +
+    (c.Cancelled ? '<div class="stat"><b>' + c.Cancelled + '</b><span>Cancelled</span></div>' : '') +
+    '</div>' +
+    '<dl class="kv">' +
+    '<dt>Status</dt><dd><span class="badge ' + statusClass(c.Status) + '">' + esc(c.Status) + '</span></dd>' +
+    (c.IndentNo ? '<dt>Indent number</dt><dd><b>' + esc(c.IndentNo) + '</b></dd>' : '') +
+    '<dt>Subject sent</dt><dd><b>' + esc(c.FullSubject || c.Subject) + '</b></dd>' +
+    '<dt>Created</dt><dd>' + esc(fmtDate(c.CreatedAt)) + ' by ' + esc(c.CreatedBy) + '</dd>' +
+    (c.CompletedAt ? '<dt>Completed</dt><dd>' + esc(fmtDate(c.CompletedAt)) + '</dd>' : '') +
+    '<dt>Attachments</dt><dd>' + esc(c.AttachmentNames || 'None') + '</dd>' +
+    '</dl>' +
+    itemsHtml +
+    (c.QuantityDelivery ? '<div class="field"><label>Delivery requirements</label><div class="pre">' + esc(c.QuantityDelivery) + '</div></div>' : '') +
+    (c.AdditionalMessage ? '<div class="field"><label>Message</label><div class="pre">' + esc(c.AdditionalMessage) + '</div></div>' : '') +
+    '<div class="card-head" style="margin-top:6px"><h3>Recipients</h3>' +
+    '<select id="cdFilter" style="width:auto"><option value="">All (' + d.recipients.length + ')</option>' +
+    ['Sent', 'Failed', 'Skipped', 'Pending', 'Sending', 'Cancelled'].map(s => {
+      const n = d.recipients.filter(r => r.Status === s).length;
+      return n ? '<option value="' + s + '"' + (f === s ? ' selected' : '') + '>' + s + ' (' + n + ')</option>' : '';
+    }).join('') + '</select></div>' +
+    '<div class="table-wrap" style="max-height:320px;overflow:auto"><table class="data"><thead><tr><th>Vendor</th><th>Email</th><th>Products sent</th><th>Status</th><th>Sent at</th><th>Error / reason</th></tr></thead><tbody>' +
+    (recips.length ? recips.map(r =>
+      '<tr><td>' + esc(r.VendorName || r.CompanyName || '—') + (r.VendorName && r.CompanyName ? '<div class="muted small">' + esc(r.CompanyName) + '</div>' : '') + '</td>' +
+      '<td>' + esc(r.Email) + '</td><td class="small">' + esc(r.ProductNames || '—') + '</td>' +
+      '<td><span class="badge ' + statusClass(r.Status) + '">' + esc(r.Status) + '</span></td>' +
+      '<td style="white-space:nowrap">' + esc(fmtDate(r.SentAt)) + '</td><td class="small">' + esc(r.Error) + '</td></tr>').join('')
+      : '<tr><td colspan="6" class="empty">No recipients in this filter.</td></tr>') +
+    '</tbody></table></div>';
+  $('cdFilter').onchange = e => renderCampaignDetail(e.target.value);
+  const live = c.Status !== 'Cancelled';
+  $('cdResume').classList.toggle('hidden', !(c.Pending > 0 && live));
+  $('cdCancel').classList.toggle('hidden', !(c.Pending > 0 && live));
+  $('cdRetry').classList.toggle('hidden', !(c.Failed > 0));
+}
+
+async function campaignAction(kind) {
+  const d = state.campaignDetail;
+  if (!d) return;
+  const id = d.campaign.CampaignID;
+  if (state.sending) return toast('A campaign is already sending in this tab. Wait for it to finish.', 'error');
+  try {
+    if (kind === 'resume') {
+      closeModal('campaignModal');
+      await runCampaign(id, true, { total: d.campaign.TotalRecipients, skipped: d.campaign.Skipped, pending: d.campaign.Pending });
+    } else if (kind === 'retry') {
+      if (!(await confirmDialog('Retry failed emails', 'Send again to the ' + d.campaign.Failed + ' vendor(s) whose email failed?', 'Retry'))) return;
+      await api('retryFailed', { campaignId: id });
+      closeModal('campaignModal');
+      await runCampaign(id, true, { total: d.campaign.TotalRecipients, skipped: d.campaign.Skipped, pending: d.campaign.Pending + d.campaign.Failed });
+    } else if (kind === 'cancel') {
+      if (!(await confirmDialog('Cancel pending emails', 'Cancel the ' + d.campaign.Pending + ' pending email(s)? They will not be sent. Already-sent emails are not affected.', 'Cancel pending', true))) return;
+      await api('cancelCampaign', { campaignId: id });
+      toast('Pending emails cancelled.', 'success');
+      await openCampaign(id);
+    }
+    loadCampaigns();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function exportCampaign() {
+  const d = state.campaignDetail;
+  if (!d) return;
+  const c = d.campaign;
+  downloadCSV((c.IndentNo ? c.IndentNo.replace(/[^A-Za-z0-9_-]+/g, '-') + '_' : '') + c.CampaignID + '-recipients.csv',
+    [['Indent No', 'Contact Person', 'Company Name', 'Email', 'Products Sent', 'Status', 'Sent At', 'Error']]
+      .concat(d.recipients.map(r => [c.IndentNo, r.VendorName, r.CompanyName, r.Email, r.ProductNames, r.Status, r.SentAt ? fmtDate(r.SentAt) : '', r.Error])));
+}
+
+/* ======================= USERS ======================= */
+async function loadUsers() {
+  $('uBody').innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  try {
+    state.users = await api('listUsers');
+    $('uBody').innerHTML = state.users.map(u =>
+      '<tr><td><b>' + esc(u.username) + '</b></td><td>' + esc(u.displayName) + '</td><td>' + esc(u.role) + '</td>' +
+      '<td><span class="badge ' + (u.active ? 'b-success' : 'b-muted') + '">' + (u.active ? 'Active' : 'Inactive') + '</span></td>' +
+      '<td>' + esc(fmtDate(u.lastLogin)) + '</td>' +
+      '<td class="actions"><button class="btn btn-sm" type="button" data-user="' + esc(u.username) + '">Edit</button></td></tr>').join('')
+      || '<tr><td colspan="6" class="empty">No users.</td></tr>';
+  } catch (e) {
+    $('uBody').innerHTML = '<tr><td colspan="6" class="empty">' + esc(e.message) + '</td></tr>';
+  }
+}
+
+function openUserModal(username) {
+  const u = username ? state.users.find(x => x.username === username) : null;
+  $('umTitle').textContent = u ? 'Edit user' : 'Add user';
+  $('umIsNew').value = u ? '' : '1';
+  $('umUsername').value = u ? u.username : '';
+  $('umUsername').disabled = !!u;
+  $('umDisplay').value = u ? u.displayName : '';
+  $('umRole').value = u ? u.role : 'User';
+  $('umActive').checked = u ? u.active : true;
+  $('umPassword').value = '';
+  $('umPassword').type = 'password';
+  $('umPassword').placeholder = u ? 'Leave blank to keep current password' : '';
+  $('umPwLabel').textContent = u ? 'Reset password' : 'Password *';
+  openModal('userModal');
+}
+
+async function saveUser(ev) {
+  ev.preventDefault();
+  const isNew = $('umIsNew').value === '1';
+  const data = {
+    isNew, username: $('umUsername').value.trim().toLowerCase(), displayName: $('umDisplay').value.trim(),
+    role: $('umRole').value, active: $('umActive').checked, password: $('umPassword').value
+  };
+  if (isNew && !data.password) return toast('Set a password for the new user.', 'error');
+  const btn = $('umSave');
+  setBusy(btn, true, 'Saving…');
+  try {
+    await api('saveUser', data);
+    toast(data.password ? 'User saved. Share the one-time password — they set their own at first login.' : 'User saved.', 'success', 6000);
+    closeModal('userModal');
+    loadUsers();
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+async function changePassword(ev) {
+  ev.preventDefault();
+  if ($('cpNew').value !== $('cpNew2').value) return toast('New passwords do not match.', 'error');
+  const btn = $('cpSave');
+  setBusy(btn, true, 'Saving…');
+  try {
+    if ($('cpNew').value === $('cpOld').value) throw new Error('New password must be different from the current one.');
+    const r = await api('changePassword', { oldPassword: $('cpOld').value, newPassword: $('cpNew').value });
+    state.token = r.token;
+    store('vem_token', r.token);
+    state.user = Object.assign({}, state.user || {}, r);
+    const wasForced = state.forcePw;
+    state.forcePw = false;
+    closeModal('passwordModal');
+    $('passwordForm').reset();
+    toast('Password saved.', 'success');
+    if (wasForced) await enterApp(r.quota);
+  } catch (e) { toast(e.message, 'error'); }
+  finally { setBusy(btn, false); }
+}
+
+/* ======================= EVENT BINDINGS ======================= */
+/** Wires a searchable checklist to a Set: ticking adds/removes ids, then calls onChange. */
+function bindChecklist(boxId, getSet, onChange) {
+  $(boxId).addEventListener('change', e => {
+    const cb = e.target.closest('input[data-cid]');
+    if (!cb) return;
+    if (cb.checked) getSet().add(cb.dataset.cid); else getSet().delete(cb.dataset.cid);
+    onChange();
+  });
+}
+
+function bindEvents() {
+  $('loginForm').addEventListener('submit', doLogin);
+  $('logoutBtn').addEventListener('click', logout);
+  $('pwBtn').addEventListener('click', () => openPasswordModal(false));
+  $('passwordForm').addEventListener('submit', changePassword);
+  $('cpGen').addEventListener('click', () => {
+    const p = generatePassword();
+    ['cpNew', 'cpNew2'].forEach(id => { $(id).value = p; $(id).type = 'text'; });
+    copyText(p);
+  });
+  $('cpCopy').addEventListener('click', () => { if ($('cpNew').value) copyText($('cpNew').value); });
+  $('umGen').addEventListener('click', () => {
+    const p = generatePassword();
+    $('umPassword').value = p;
+    $('umPassword').type = 'text';
+    copyText(p);
+  });
+  $('umCopy').addEventListener('click', () => { if ($('umPassword').value) copyText($('umPassword').value); });
+  document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
+
+  // Compose — indent, products, subject
+  $('fIndent').addEventListener('input', updateSubject);
+  $('indentAuto').addEventListener('click', () => fillIndentNo(true));
+  $('fSubject').addEventListener('input', () => { state.subjectAuto = !$('fSubject').value.trim(); updateSubject(); });
+  $('prodSearch').addEventListener('focus', renderPicker);
+  $('prodSearch').addEventListener('click', renderPicker); // click again to add another product
+  $('prodSearch').addEventListener('input', () => { state.pickIndex = 0; renderPicker(); });
+  $('prodSearch').addEventListener('blur', () => setTimeout(hidePicker, 150));
+  $('prodSearch').addEventListener('keydown', e => {
+    const list = pickerMatches();
+    if (e.key === 'ArrowDown') { e.preventDefault(); state.pickIndex = Math.min(state.pickIndex + 1, list.length - 1); renderPicker(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); state.pickIndex = Math.max(state.pickIndex - 1, 0); renderPicker(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (list[state.pickIndex]) { addItem(list[state.pickIndex].ProductID); hidePicker(); } }
+    else if (e.key === 'Escape') { hidePicker(); }
+  });
+  $('prodList').addEventListener('mousedown', e => {
+    const o = e.target.closest('[data-pid]');
+    if (!o) return;
+    e.preventDefault(); // keep focus in the search box so more products can be added
+    addItem(o.dataset.pid);
+    hidePicker(); // close the list so the selected products are visible
+  });
+  $('itemsBox').addEventListener('input', e => {
+    const inp = e.target.closest('[data-item]');
+    if (inp && state.items[Number(inp.dataset.item)]) state.items[Number(inp.dataset.item)][inp.dataset.k] = inp.value;
+  });
+  $('itemsBox').addEventListener('click', e => { const b = e.target.closest('[data-rmitem]'); if (b) removeItem(b.dataset.rmitem); });
+
+  // Compose — vendors
+  $('cvSearch').addEventListener('input', renderComposeVendors);
+  $('cvShowAll').addEventListener('change', renderComposeVendors);
+  $('cvList').addEventListener('change', e => {
+    const cb = e.target.closest('input[type=checkbox][data-id]');
+    if (!cb) return;
+    if (cb.checked) state.selected.add(cb.dataset.id); else state.selected.delete(cb.dataset.id);
+    updateSelectedCount();
+  });
+  $('cvSelectAll').addEventListener('click', () => { composeFiltered().filter(hasEmail).forEach(v => state.selected.add(v.VendorID)); renderComposeVendors(); });
+  $('cvDeselectAll').addEventListener('click', () => { state.selected.clear(); renderComposeVendors(); });
+  $('cvRefresh').addEventListener('click', loadMaster);
+  $('rpSync').addEventListener('click', syncReplies);
+  $('rpExport').addEventListener('click', exportComparison);
+  $('rpIndent').addEventListener('change', () => { state.rp.sel = $('rpIndent').value; applyRpFilters(false); loadReport(); });
+  ['rpBy', 'rpFrom', 'rpTo', 'rpMonth', 'rpYear'].forEach(id => $(id).addEventListener('change', () => applyRpFilters(false)));
+  $('rpIndentQ').addEventListener('input', () => applyRpFilters(false));
+  $('rpClear').addEventListener('click', clearRpFilters);
+  $('rpOverview').addEventListener('click', e => { const b = e.target.closest('[data-compare]'); if (b) compareIndent(b.dataset.compare); });
+  $('rpBody').addEventListener('click', e => { const b = e.target.closest('[data-viewreplies]'); if (b) openReplies(b.dataset.viewreplies); });
+  $('rpBody').addEventListener('change', e => { if (e.target.matches('[data-q]')) saveQuoteRow(e.target); });
+  $('rpBody').addEventListener('input', e => { if (e.target.matches('[data-q="Rate"]')) markL1(e.target.dataset.p); });
+  $('rpUnBody').addEventListener('click', e => { const b = e.target.closest('[data-assign]'); if (b) openAssign(b.dataset.assign); });
+  $('asIndent').addEventListener('change', fillAssignVendors);
+  $('assignForm').addEventListener('submit', saveAssign);
+  $('cvList').addEventListener('click', e => { const b = e.target.closest('[data-setemail]'); if (b) { e.preventDefault(); openEmailModal(b.dataset.setemail); } });
+  $('emailForm').addEventListener('submit', saveVendorEmail);
+
+  // Compose — attachments & sending
+  $('attDrop').addEventListener('click', () => $('attInput').click());
+  $('attInput').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
+  $('attDrop').addEventListener('dragover', e => { e.preventDefault(); $('attDrop').classList.add('over'); });
+  $('attDrop').addEventListener('dragleave', () => $('attDrop').classList.remove('over'));
+  $('attDrop').addEventListener('drop', e => { e.preventDefault(); $('attDrop').classList.remove('over'); addFiles([...e.dataTransfer.files]); });
+  $('attList').addEventListener('click', e => {
+    const b = e.target.closest('[data-rm]');
+    if (!b) return;
+    state.attachments.splice(Number(b.dataset.rm), 1);
+    renderAttachments();
+  });
+  $('clearFormBtn').addEventListener('click', clearForm);
+  $('sendTestBtn').addEventListener('click', sendTest);
+  $('previewBtn').addEventListener('click', openPreview);
+  $('pvVendor').addEventListener('change', renderPreview);
+  $('pvReload').addEventListener('click', renderPreview);
+  $('pvConfirm').addEventListener('change', e => { $('pvSendBtn').disabled = !e.target.checked; });
+  $('pvSendBtn').addEventListener('click', confirmSend);
+
+  // Progress
+  $('pgStop').addEventListener('click', () => { state.stopRequested = true; $('pgStop').disabled = true; $('pgStatus').textContent = 'Pausing after the current batch…'; });
+  $('pgClose').addEventListener('click', () => closeModal('progressModal'));
+  $('pgHistory').addEventListener('click', () => { closeModal('progressModal'); showPage('history'); });
+
+  // Vendors
+  $('vSearch').addEventListener('input', () => { state.vendorPage = 1; renderVendorTable(); });
+  $('vProduct').addEventListener('change', () => { state.vendorPage = 1; renderVendorTable(); });
+  $('vPrev').addEventListener('click', () => { state.vendorPage--; renderVendorTable(); });
+  $('vNext').addEventListener('click', () => { state.vendorPage++; renderVendorTable(); });
+  $('vBody').addEventListener('change', e => {
+    const cb = e.target.closest('.vchk');
+    if (!cb) return;
+    if (cb.checked) state.vendorSel.add(cb.dataset.id); else state.vendorSel.delete(cb.dataset.id);
+    renderVendorTable();
+  });
+  $('vBody').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'edit') openVendorModal(b.dataset.id);
+    if (b.dataset.act === 'del') deleteVendors([b.dataset.id]);
+    if (b.dataset.act === 'email') openEmailModal(b.dataset.id);
+  });
+  $('vChkAll').addEventListener('change', e => {
+    const list = vendorFiltered();
+    const start = (state.vendorPage - 1) * PAGE_SIZE;
+    list.slice(start, start + PAGE_SIZE).forEach(v => { if (e.target.checked) state.vendorSel.add(v.VendorID); else state.vendorSel.delete(v.VendorID); });
+    renderVendorTable();
+  });
+  $('vDeleteSel').addEventListener('click', () => deleteVendors([...state.vendorSel]));
+  $('vAdd').addEventListener('click', () => openVendorModal(null));
+  $('vExport').addEventListener('click', exportVendors);
+  $('vendorForm').addEventListener('submit', saveVendor);
+  $('vmProdSearch').addEventListener('input', renderVmProducts);
+  bindChecklist('vmProdList', () => state.vmProducts, () => { $('vmProdCount').textContent = '(' + state.vmProducts.size + ' selected)'; });
+  $('vmAddProd').addEventListener('click', vmAddProduct);
+  $('vmNewProd').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); vmAddProduct(); } });
+
+  // Products
+  $('pSearch').addEventListener('input', renderProductTable);
+  $('pNoVendor').addEventListener('change', renderProductTable);
+  $('pBody').addEventListener('change', e => {
+    const cb = e.target.closest('.pchk');
+    if (!cb) return;
+    if (cb.checked) state.productSel.add(cb.dataset.id); else state.productSel.delete(cb.dataset.id);
+    renderProductTable();
+  });
+  $('pBody').addEventListener('click', e => {
+    const b = e.target.closest('[data-pact]');
+    if (!b) return;
+    if (b.dataset.pact === 'edit') openProductModal(b.dataset.id);
+    if (b.dataset.pact === 'del') deleteProducts([b.dataset.id]);
+  });
+  $('pChkAll').addEventListener('change', e => {
+    productFiltered().forEach(p => { if (e.target.checked) state.productSel.add(p.ProductID); else state.productSel.delete(p.ProductID); });
+    renderProductTable();
+  });
+  $('pDeleteSel').addEventListener('click', () => deleteProducts([...state.productSel]));
+  $('pAdd').addEventListener('click', () => openProductModal(null));
+  $('pBulk').addEventListener('click', openBulkModal);
+  $('bulkSave').addEventListener('click', saveBulkProducts);
+  $('productForm').addEventListener('submit', saveProduct);
+  $('pmVendorSearch').addEventListener('input', renderPmVendors);
+  bindChecklist('pmVendorList', () => state.pmVendors, () => { $('pmVendorCount').textContent = '(' + state.pmVendors.size + ' selected)'; });
+  $('pmAllShown').addEventListener('click', () => { (state.pmShown || []).forEach(it => state.pmVendors.add(it.id)); renderPmVendors(); });
+  $('pmNone').addEventListener('click', () => { state.pmVendors.clear(); renderPmVendors(); });
+
+  // Enter inside a search box in a form must not submit the form
+  ['vendorForm', 'productForm'].forEach(id => $(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.matches('input[type=search]')) e.preventDefault();
+  }));
+
+  // Import
+  $('impFile').addEventListener('change', e => onImportFile(e.target.files[0]));
+  $('impSheet').addEventListener('change', e => { if (state.imp.wb) setGrid(gridFromSheet(state.imp.wb, e.target.value)); });
+  $('impReadBtn').addEventListener('click', () => {
+    const text = $('impPaste').value;
+    if (!text.trim()) return toast('Paste some data first.', 'error');
+    try { setGrid(gridFromText(text)); } catch (e) { toast('Could not read pasted data: ' + e.message, 'error'); }
+  });
+  $('impClearBtn').addEventListener('click', clearImport);
+  $('impHasHeader').addEventListener('change', e => {
+    state.imp.hasHeader = e.target.checked;
+    state.imp.map = autoMap(state.imp.grid, state.imp.hasHeader);
+    renderMapping(); buildRecords(); renderReview();
+  });
+  $('impMapGrid').addEventListener('change', e => {
+    const sel = e.target.closest('select[data-key]');
+    if (!sel) return;
+    const key = sel.dataset.key, val = Number(sel.value);
+    Object.keys(state.imp.map).forEach(k => { if (k !== key && val >= 0 && state.imp.map[k] === val) state.imp.map[k] = -1; });
+    state.imp.map[key] = val;
+    renderMapping(); buildRecords(); renderReview();
+  });
+  $('impUpdateExisting').addEventListener('change', renderReview);
+  $('impBtn').addEventListener('click', doImport);
+  $('impTemplate').addEventListener('click', downloadTemplate);
+
+  // History
+  $('hRefresh').addEventListener('click', loadCampaigns);
+  ['hSearch', 'hStatus', 'hFailedOnly'].forEach(id => $(id).addEventListener(id === 'hSearch' ? 'input' : 'change', renderHistory));
+  $('hBody').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) openCampaign(b.dataset.view); });
+  $('cdResume').addEventListener('click', () => campaignAction('resume'));
+  $('cdRetry').addEventListener('click', () => campaignAction('retry'));
+  $('cdCancel').addEventListener('click', () => campaignAction('cancel'));
+  $('cdExport').addEventListener('click', exportCampaign);
+
+  // Users
+  $('uAdd').addEventListener('click', () => openUserModal(null));
+  $('uBody').addEventListener('click', e => { const b = e.target.closest('[data-user]'); if (b) openUserModal(b.dataset.user); });
+  $('userForm').addEventListener('submit', saveUser);
+
+  // Escape closes the top-most closable modal (never the sending progress)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!$('prodList').classList.contains('hidden')) return hidePicker();
+    const open = [...document.querySelectorAll('.modal-bg.open')].filter(m => m.id !== 'progressModal' && m.id !== 'confirmModal' && !(m.id === 'passwordModal' && state.forcePw));
+    if (open.length) closeModal(open[open.length - 1].id);
+  });
+  window.addEventListener('beforeunload', e => { if (state.sending) { e.preventDefault(); e.returnValue = ''; } });
+}
+
+/* ======================= START ======================= */
+async function init() {
+  bindEvents();
+  const t = load('vem_token');
+  if (t) {
+    state.token = t;
+    try {
+      state.user = await api('me');
+      if (state.user.mustChangePassword) { $('loginView').classList.remove('hidden'); openPasswordModal(true); }
+      else await enterApp(state.user.quota);
+      return;
+    } catch (e) {
+      state.token = null;
+      store('vem_token', null);
+    }
+  }
+  $('loginView').classList.remove('hidden');
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
